@@ -1,9 +1,18 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import styled from '@emotion/styled';
+import { css } from '@emotion/react';
+
+const Header = styled.header`
+  ${({ theme }) => css`
+    ${theme.textStyles.H_B_32};
+    color: ${theme.colors.primary[700]};
+  `}
+`;
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <h1>github actions test</h1>,
+    element: <Header>Style Test</Header>,
     errorElement: <div>오류!</div>,
     children: [],
   },
