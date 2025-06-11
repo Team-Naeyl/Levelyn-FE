@@ -51,7 +51,7 @@ const InputWrapper = styled.div<Pick<TextFieldProps, 'error' | 'variant'>>`
       flex-direction: row;
       gap: 8px;
       border-radius: 8px;
-      padding: 16px;
+      padding: 12px 16px;
       transition: all 0.2s ease-in-out;
       border: ${borderWidth} solid ${borderColor};
       background: ${background};
@@ -86,6 +86,6 @@ const Input = styled.input`
 const ErrorIcon = styled(Icon)`
   ${({ theme }) => css`
     color: ${theme.colors.error[500]};
-    font-size: 16px;
+    font-size: 24px;
   `}
 `;
