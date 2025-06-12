@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import arrowUpIcon from '@iconify-icons/material-symbols/keyboard-arrow-up';
 import arrowDownIcon from '@iconify-icons/material-symbols/keyboard-arrow-down';
 
-interface DropDownProps {
+interface DropdownProps {
   fullWidth?: boolean;
   placeholder?: string;
   loading?: boolean;
@@ -16,7 +16,7 @@ interface DropDownProps {
   onChange?: (value: string | number) => void;
 }
 
-export const DropDown = ({ fullWidth, placeholder = '선택하세요', loading, options = [], onChange }: DropDownProps) => {
+export const Dropdown = ({ fullWidth, placeholder = '선택하세요', loading, options = [], onChange }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<{ label: string; value: string | number } | undefined>(undefined);
 
