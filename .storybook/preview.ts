@@ -1,4 +1,3 @@
-import React from 'react';
 import { withThemeFromJSXProvider } from '@storybook/addon-themes';
 import { ThemeProvider } from '@emotion/react';
 
