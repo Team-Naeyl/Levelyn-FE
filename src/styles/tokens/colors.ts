@@ -43,6 +43,6 @@ export const colors = {
     800: '#82071E',
     900: '#660018',
   },
-  white: 'FFFFFF',
+  white: '#FFFFFF',
   black: '#1B1F24',
 };

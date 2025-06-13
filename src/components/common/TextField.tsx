@@ -11,7 +11,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const TextField = ({ label, error, variant, ...props }: TextFieldProps) => {
   return (
-    <Container>
+    <FieldWrapper>
       {label && <Label>{label}</Label>}
       <InputWrapper
         error={error}
@@ -20,11 +20,11 @@ export const TextField = ({ label, error, variant, ...props }: TextFieldProps) =
         <Input {...props} />
         {error && <ErrorIcon icon={errorIcon} />}
       </InputWrapper>
-    </Container>
+    </FieldWrapper>
   );
 };
 
-const Container = styled.div`
+const FieldWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2px;
