@@ -3,8 +3,6 @@ import {fn} from "storybook/test";
 import {Button} from "../components/common/Button";
 import { Icon } from '@iconify/react';
 import addIcon from '@iconify-icons/material-symbols/add';
-import { ThemeProvider } from '@emotion/react';
-import { theme } from '../styles/theme';
 
 const meta = {
     title: "Example/Button",
@@ -13,30 +11,33 @@ const meta = {
         layout: 'centered',
     },
     tags: ['autodocs'],
-    decorators: [
-        (Story) => (
-            <ThemeProvider theme={theme}>
-                <Story />
-            </ThemeProvider>
-        ),
-    ],
     argTypes: {
         variant: {
             control: 'select',
             options: ['contained', 'outlined', 'texted'],
+            description: '버튼의 스타일 변형',
         },
         size: {
             control: 'select',
             options: ['small', 'medium'],
+            description: '버튼의 크기',
         },
         disabled: {
             control: 'boolean',
+            description: '비활성화 상태',
         },
         loading: {
             control: 'boolean',
+            description: '로딩 상태',
         },
         fullWidth: {
             control: 'boolean',
+            description: '전체 너비 사용 여부',
+        },
+        color: {
+            control: 'select',
+            options: ['primary', 'secondary', 'error', 'ghost'],
+            description: '버튼의 색상',
         },
     },
 } satisfies Meta<typeof Button>;
@@ -44,88 +45,128 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Text Only
-export const ContainedText: Story = {
+// Text Only Buttons
+export const Primary: Story = {
     args: {
         label: 'Button',
         variant: 'contained',
         size: 'medium',
+        color: 'primary',
         onClick: fn(),
     },
 };
 
-export const OutlinedText: Story = {
+export const Secondary: Story = {
     args: {
         label: 'Button',
         variant: 'outlined',
         size: 'medium',
+        color: 'secondary',
         onClick: fn(),
     },
 };
 
-export const TextedText: Story = {
+export const Error: Story = {
     args: {
         label: 'Button',
         variant: 'texted',
         size: 'medium',
+        color: 'error',
         onClick: fn(),
     },
 };
 
-// Text + Icon
-export const ContainedTextWithIcon: Story = {
+export const Ghost: Story = {
     args: {
         label: 'Button',
         variant: 'contained',
         size: 'medium',
-        icon: <Icon icon={addIcon} />,
+        color: 'ghost',
         onClick: fn(),
     },
 };
 
-export const OutlinedTextWithIcon: Story = {
+// Text + Icon Buttons
+export const PrimaryWithIcon: Story = {
     args: {
         label: 'Button',
-        variant: 'outlined',
+        variant: 'contained',
         size: 'medium',
+        color: 'primary',
         icon: <Icon icon={addIcon} />,
         onClick: fn(),
     },
 };
 
-export const TextedTextWithIcon: Story = {
+export const SecondaryWithIcon: Story = {
     args: {
         label: 'Button',
-        variant: 'texted',
+        variant: 'contained',
         size: 'medium',
+        color: 'secondary',
         icon: <Icon icon={addIcon} />,
         onClick: fn(),
     },
 };
 
-// Icon Only
-export const ContainedIconOnly: Story = {
+export const ErrorWithIcon: Story = {
+    args: {
+        label: 'Button',
+        variant: 'contained',
+        size: 'medium',
+        color: 'error',
+        icon: <Icon icon={addIcon} />,
+        onClick: fn(),
+    },
+};
+
+export const GhostWithIcon: Story = {
+    args: {
+        label: 'Button',
+        variant: 'contained',
+        size: 'medium',
+        color: 'ghost',
+        icon: <Icon icon={addIcon} />,
+        onClick: fn(),
+    },
+};
+
+// Icon Only Buttons
+export const PrimaryIconOnly: Story = {
     args: {
         variant: 'contained',
         size: 'medium',
+        color: 'primary',
         icon: <Icon icon={addIcon} />,
         onClick: fn(),
     },
 };
 
-export const OutlinedIconOnly: Story = {
+export const SecondaryIconOnly: Story = {
     args: {
-        variant: 'outlined',
+        variant: 'contained',
         size: 'medium',
+        color: 'secondary',
         icon: <Icon icon={addIcon} />,
         onClick: fn(),
     },
 };
 
-export const TextedIconOnly: Story = {
+export const ErrorIconOnly: Story = {
     args: {
-        variant: 'texted',
+        variant: 'contained',
         size: 'medium',
+        color: 'error',
+        icon: <Icon icon={addIcon} />,
+        onClick: fn(),
+    },
+};
+
+export const GhostIconOnly: Story = {
+    args: {
+        variant: 'contained',
+        size: 'medium',
+        color: 'ghost',
         icon: <Icon icon={addIcon} />,
         onClick: fn(),
     },
@@ -137,6 +178,7 @@ export const Disabled: Story = {
         label: 'Button',
         variant: 'contained',
         size: 'medium',
+        color: 'primary',
         disabled: true,
         onClick: fn(),
     },
@@ -147,6 +189,7 @@ export const Loading: Story = {
         label: 'Button',
         variant: 'contained',
         size: 'medium',
+        color: 'primary',
         loading: true,
         onClick: fn(),
     },
@@ -157,6 +200,7 @@ export const FullWidth: Story = {
         label: 'Button',
         variant: 'contained',
         size: 'medium',
+        color: 'primary',
         fullWidth: true,
         onClick: fn(),
     },
