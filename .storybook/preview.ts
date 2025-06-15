@@ -1,4 +1,21 @@
+import { withThemeFromJSXProvider } from '@storybook/addon-themes';
+import { ThemeProvider } from '@emotion/react';
+
+import { theme } from '../src/styles/theme';
+import GlobalStyles from '../src/styles/GlobalStyles';
+
 import type { Preview } from '@storybook/react-vite';
+
+export const decorators = [
+  withThemeFromJSXProvider({
+    themes: {
+      light: theme,
+    },
+    defaultTheme: 'light',
+    Provider: ThemeProvider,
+    GlobalStyles,
+  }),
+];
 
 const preview: Preview = {
   parameters: {
@@ -8,11 +25,7 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-
     a11y: {
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
       test: 'todo',
     },
   },
