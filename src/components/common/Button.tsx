@@ -11,36 +11,49 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: React.ReactNode;
     fullWidth?: boolean;
     className?: string;
+    color?: "primary" | "secondary" | "error" | "ghost";
 }
 
-const getVariantStyle = (theme: any, variant: string) => {
+const getVariantStyle = (theme: any, variant: string, color: string = 'primary') => {
+  const colorMap = {
+    primary: theme.colors.primary,
+    secondary: theme.colors.secondary,
+    error: theme.colors.error,
+    ghost: theme.colors.gray,
+  };
+  const selectedColor = colorMap[color as keyof typeof colorMap] || colorMap.primary;
+  const isLightColor = color === 'ghost' || color === 'error';
+  const baseColor = isLightColor ? 200 : 500;
+  const hoverColor = isLightColor ? 300 : 600;
+
   switch (variant) {
     case 'contained':
       return css`
-        background: ${theme.colors.primary[500]};
-        color: ${theme.colors.white};
+        background: ${selectedColor[baseColor]};
+        color: ${isLightColor ? selectedColor[500] : theme.colors.white};
         border: none;
         &:hover:not(:disabled) {
-          background: ${theme.colors.primary[600]};
+          background: ${selectedColor[hoverColor]};
         }
       `;
     case 'outlined':
       return css`
         background: transparent;
-        color: ${theme.colors.primary[500]};
-        border: 1px solid ${theme.colors.primary[500]};
+        color: ${selectedColor[baseColor]};
+        border: 1px solid ${selectedColor[baseColor]};
         &:hover:not(:disabled) {
-          border: 1px solid ${theme.colors.primary[600]};
+          border: 1px solid ${selectedColor[hoverColor]};
         }
       `;
     case 'texted':
       return css`
         background: transparent;
-        color: ${theme.colors.primary[500]};
+        color: ${selectedColor[baseColor]};
         border: none;
         padding: 0;
         &:hover:not(:disabled) {
-          background: ${theme.colors.primary[200]};
+          background: ${selectedColor[200]};
+          color: ${isLightColor ? selectedColor[500] : selectedColor[baseColor]};
         }
       `;
     default:
@@ -48,7 +61,7 @@ const getVariantStyle = (theme: any, variant: string) => {
   }
 };
 
-export const Button = ({ label, onClick, disabled, loading, variant = "contained", size = "medium", icon, fullWidth, className, ...props }: ButtonProps) => {
+export const Button = ({ label, onClick, disabled, loading, variant = "contained", size = "medium", icon, fullWidth, className, color = "primary", ...props }: ButtonProps) => {
     const isIconOnly = !!icon && !label;
     const isIconWithLabel = !!icon && !!label;
 
@@ -59,6 +72,7 @@ export const Button = ({ label, onClick, disabled, loading, variant = "contained
                 disabled={disabled || loading}
                 variant={variant}
                 size={size}
+                color={color}
                 className={className}
                 {...props}
             >
@@ -76,6 +90,7 @@ export const Button = ({ label, onClick, disabled, loading, variant = "contained
             size={size}
             fullWidth={fullWidth}
             isIconWithLabel={isIconWithLabel}
+            color={color}
             className={className}
             {...props}
         >
@@ -86,8 +101,8 @@ export const Button = ({ label, onClick, disabled, loading, variant = "contained
     );
 };
 
-const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size'>>`
-  ${({ theme, variant = 'contained', size = 'medium' }) => {
+const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'color'>>`
+  ${({ theme, variant = 'contained', size = 'medium', color = 'primary' }) => {
     const iconSize = size === 'small' ? '42px' : '52px';
     return css`
       width: ${iconSize};
@@ -98,7 +113,7 @@ const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size'>>`
       justify-content: center;
       border-radius: 8px;
       font-size: 20px;
-      ${getVariantStyle(theme, variant)}
+      ${getVariantStyle(theme, variant, color)}
       &:disabled {
         background: ${theme.colors.gray[100]};
         color: ${theme.colors.gray[300]};
@@ -108,8 +123,8 @@ const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size'>>`
   }}
 `;
 
-const TextButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'fullWidth'> & { isIconWithLabel?: boolean }>`
-  ${({ theme, variant = 'contained', size = 'medium', fullWidth, isIconWithLabel }) => {
+const TextButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'fullWidth' | 'color'> & { isIconWithLabel?: boolean }>`
+  ${({ theme, variant = 'contained', size = 'medium', fullWidth, isIconWithLabel, color = 'primary' }) => {
     const sizeStyles = {
       small: css`
         ${theme.textStyles.L_SB_12};
@@ -134,7 +149,7 @@ const TextButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'fullWid
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       position: relative;
-      ${getVariantStyle(theme, variant)}
+      ${getVariantStyle(theme, variant, color)}
       ${sizeStyles[size]}
       &:disabled {
         background: ${theme.colors.gray[100]};
