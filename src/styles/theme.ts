@@ -6,4 +6,7 @@ export const theme = {
   textStyles,
 };
 
-export type ThemeType = typeof theme;
+export type ThemeType = {
+  colors: typeof colors;
+  textStyles: typeof textStyles;
+};
