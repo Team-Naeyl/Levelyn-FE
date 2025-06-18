@@ -2,16 +2,16 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    label?: string;
-    onClick: () => void;
-    disabled?: boolean;
-    loading?: boolean;
-    variant?: "contained" | "outlined" | "texted";
-    size?: "small" | "medium";
-    icon?: React.ReactNode;
-    fullWidth?: boolean;
-    className?: string;
-    color?: "primary" | "secondary" | "error" | "ghost";
+  label?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  variant?: 'contained' | 'outlined' | 'texted';
+  size?: 'small' | 'medium';
+  icon?: React.ReactNode;
+  fullWidth?: boolean;
+  className?: string;
+  color?: 'primary' | 'secondary' | 'error' | 'ghost';
 }
 
 const getVariantStyle = (theme: any, variant: string, color: string = 'primary') => {
@@ -61,44 +61,56 @@ const getVariantStyle = (theme: any, variant: string, color: string = 'primary')
   }
 };
 
-export const Button = ({ label, onClick, disabled, loading, variant = "contained", size = "medium", icon, fullWidth, className, color = "primary", ...props }: ButtonProps) => {
-    const isIconOnly = !!icon && !label;
-    const isIconWithLabel = !!icon && !!label;
+export const Button = ({
+  label,
+  onClick,
+  disabled,
+  loading,
+  variant = 'contained',
+  size = 'medium',
+  icon,
+  fullWidth,
+  className,
+  color = 'primary',
+  ...props
+}: ButtonProps) => {
+  const isIconOnly = !!icon && !label;
+  const isIconWithLabel = !!icon && !!label;
 
-    if (isIconOnly) {
-        return (
-            <IconButton
-                onClick={onClick}
-                disabled={disabled || loading}
-                variant={variant}
-                size={size}
-                color={color}
-                className={className}
-                {...props}
-            >
-                {loading && <LoadingSpinner />}
-                {icon && !loading && <IconWrapper>{icon}</IconWrapper>}
-            </IconButton>
-        );
-    }
-
+  if (isIconOnly) {
     return (
-        <TextButton
-            onClick={onClick}
-            disabled={disabled || loading}
-            variant={variant}
-            size={size}
-            fullWidth={fullWidth}
-            isIconWithLabel={isIconWithLabel}
-            color={color}
-            className={className}
-            {...props}
-        >
-            {loading && <LoadingSpinner />}
-            {icon && !loading && <IconWrapper>{icon}</IconWrapper>}
-            {label}
-        </TextButton>
+      <IconButton
+        onClick={onClick}
+        disabled={disabled || loading}
+        variant={variant}
+        size={size}
+        color={color}
+        className={className}
+        {...props}
+      >
+        {loading && <LoadingSpinner />}
+        {icon && !loading && <IconWrapper>{icon}</IconWrapper>}
+      </IconButton>
     );
+  }
+
+  return (
+    <TextButton
+      onClick={onClick}
+      disabled={disabled || loading}
+      variant={variant}
+      size={size}
+      fullWidth={fullWidth}
+      isIconWithLabel={isIconWithLabel}
+      color={color}
+      className={className}
+      {...props}
+    >
+      {loading && <LoadingSpinner />}
+      {icon && !loading && <IconWrapper>{icon}</IconWrapper>}
+      {label}
+    </TextButton>
+  );
 };
 
 const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'color'>>`
@@ -123,7 +135,9 @@ const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'color'>
   }}
 `;
 
-const TextButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'fullWidth' | 'color'> & { isIconWithLabel?: boolean }>`
+const TextButton = styled.button<
+  Pick<ButtonProps, 'variant' | 'size' | 'fullWidth' | 'color'> & { isIconWithLabel?: boolean }
+>`
   ${({ theme, variant = 'contained', size = 'medium', fullWidth, isIconWithLabel, color = 'primary' }) => {
     const sizeStyles = {
       small: css`
@@ -139,7 +153,7 @@ const TextButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'fullWid
         border-radius: 8px;
         height: 48px;
         width: ${fullWidth ? '100%' : '168px'};
-      `
+      `,
     };
     return css`
       display: flex;

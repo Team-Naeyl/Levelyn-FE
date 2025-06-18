@@ -1,17 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 
-
 const MAP_WIDTH = 296;
 const MAP_HEIGHT = 460;
 const HEX_SIZE = 40;
 const MAX_HEXAGONS = 8;
 
 const CATEGORIES = {
-  '공부': { color: '#bfdbfe', name: '공부' }, 
-  '운동': { color: '#bbf7d0', name: '운동' }, 
-  '업무': { color: '#fef08a', name: '업무' }, 
-} as const; 
+  공부: { color: '#bfdbfe', name: '공부' },
+  운동: { color: '#bbf7d0', name: '운동' },
+  업무: { color: '#fef08a', name: '업무' },
+} as const;
 
 type CategoryKey = keyof typeof CATEGORIES;
 const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
@@ -43,20 +42,26 @@ const createHexagonPath = (size: number): string => {
 };
 
 const getNeighborPositions = (q: number, r: number): [number, number][] => {
-  const directions = [[+1, 0], [+1, -1], [0, -1], [-1, 0], [-1, +1], [0, +1]];
+  const directions = [
+    [+1, 0],
+    [+1, -1],
+    [0, -1],
+    [-1, 0],
+    [-1, +1],
+    [0, +1],
+  ];
   return directions.map(([dq, dr]) => [q + dq, r + dr]);
 };
 
 const axialToPixel = (q: number, r: number, size: number): [number, number] => {
-  const x = size * (3 / 2 * q);
-  const y = size * (Math.sqrt(3) / 2 * q + Math.sqrt(3) * r);
+  const x = size * ((3 / 2) * q);
+  const y = size * ((Math.sqrt(3) / 2) * q + Math.sqrt(3) * r);
   return [x, y];
 };
 
-
 export const TileMap = () => {
   const [mapSeed, setMapSeed] = useState(1);
-  const [completedStep, setCompletedStep] = useState(0); 
+  const [completedStep, setCompletedStep] = useState(0);
   const [taskCategories, setTaskCategories] = useState<{ [key: number]: CategoryKey }>({});
 
   const hexagonCluster = useMemo((): Hexagon[] => {
@@ -64,39 +69,45 @@ export const TileMap = () => {
     const hexagons: Hexagon[] = [];
     const usedPositions = new Set<string>();
 
-    const startQ = 0, startR = 0;
+    const startQ = 0,
+      startR = 0;
     const [startX, startY] = axialToPixel(startQ, startR, HEX_SIZE);
 
     const startHex: Hexagon = {
       id: `hex_${startQ}_${startR}`,
-      q: startQ, r: startR,
-      x: startX + MAP_WIDTH / 2, y: startY + MAP_HEIGHT / 2,
+      q: startQ,
+      r: startR,
+      x: startX + MAP_WIDTH / 2,
+      y: startY + MAP_HEIGHT / 2,
       step: 1,
     };
 
     hexagons.push(startHex);
     usedPositions.add(`${startQ},${startR}`);
-    
+
     let lastHex = startHex;
 
     while (hexagons.length < MAX_HEXAGONS) {
       const neighbors = getNeighborPositions(lastHex.q, lastHex.r);
       const candidatePositions = neighbors
         .map(([q, r]) => ({ q, r, key: `${q},${r}` }))
-        .filter(pos => !usedPositions.has(pos.key));
+        .filter((pos) => !usedPositions.has(pos.key));
 
       if (candidatePositions.length === 0) break;
 
       const randomIndex = Math.floor(seededRandom(currentSeed++, 0, candidatePositions.length));
       const { q, r, key } = candidatePositions[randomIndex];
-      
+
       const [pixelX, pixelY] = axialToPixel(q, r, HEX_SIZE);
       const newHex: Hexagon = {
-        id: `hex_${q}_${r}`, q, r,
-        x: pixelX + MAP_WIDTH / 2, y: pixelY + MAP_HEIGHT / 2,
+        id: `hex_${q}_${r}`,
+        q,
+        r,
+        x: pixelX + MAP_WIDTH / 2,
+        y: pixelY + MAP_HEIGHT / 2,
         step: hexagons.length + 1,
       };
-      
+
       hexagons.push(newHex);
       usedPositions.add(key);
       lastHex = newHex;
@@ -106,9 +117,12 @@ export const TileMap = () => {
 
   const viewBox = useMemo(() => {
     if (hexagonCluster.length === 0) return `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`;
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      maxX = -Infinity,
+      minY = Infinity,
+      maxY = -Infinity;
 
-    hexagonCluster.forEach(hex => {
+    hexagonCluster.forEach((hex) => {
       minX = Math.min(minX, hex.x - HEX_SIZE);
       maxX = Math.max(maxX, hex.x + HEX_SIZE);
       minY = Math.min(minY, hex.y - HEX_SIZE);
@@ -126,39 +140,50 @@ export const TileMap = () => {
   };
 
   const generateNewCluster = () => {
-    setMapSeed(prev => prev + 1);
+    setMapSeed((prev) => prev + 1);
     resetState();
   };
-  
+
   const completeTask = (category: CategoryKey) => {
     const nextStep = completedStep + 1;
     if (nextStep > hexagonCluster.length) return;
-    
+
     setCompletedStep(nextStep);
-    setTaskCategories(prev => ({ ...prev, [nextStep]: category }));
+    setTaskCategories((prev) => ({ ...prev, [nextStep]: category }));
   };
 
   return (
     <Container>
       <MapContainer>
-        <svg width={MAP_WIDTH} height={MAP_HEIGHT} viewBox={viewBox}>
+        <svg
+          width={MAP_WIDTH}
+          height={MAP_HEIGHT}
+          viewBox={viewBox}
+        >
           {hexagonCluster.map((hex) => {
             const isCompleted = hex.step <= completedStep;
             const isNext = hex.step === completedStep + 1;
             const categoryKey = taskCategories[hex.step];
-            
+
             const fill = isCompleted && categoryKey ? CATEGORIES[categoryKey].color : 'white';
             const stroke = isCompleted || isNext ? 'black' : '#e5e7eb';
             const textColor = isCompleted || isNext ? 'black' : '#e5e7eb';
 
             return (
-              <g key={hex.id} transform={`translate(${hex.x}, ${hex.y})`}>
+              <g
+                key={hex.id}
+                transform={`translate(${hex.x}, ${hex.y})`}
+              >
                 <HexagonPath
                   d={createHexagonPath(HEX_SIZE - 2)}
                   fill={fill}
                   stroke={stroke}
                 />
-                <HexagonText x="0" y="6" textColor={textColor}>
+                <HexagonText
+                  x="0"
+                  y="6"
+                  textColor={textColor}
+                >
                   {hex.step}
                 </HexagonText>
               </g>
@@ -177,8 +202,7 @@ const Container = styled.div`
   padding: 24px;
   min-height: 100vh;
   color: white;
-`
-
+`;
 
 const MapContainer = styled.div`
   position: relative;
@@ -186,8 +210,8 @@ const MapContainer = styled.div`
 `;
 
 const HexagonPath = styled.path<{ fill: string; stroke: string }>`
-  fill: ${props => props.fill};
-  stroke: ${props => props.stroke};
+  fill: ${(props) => props.fill};
+  stroke: ${(props) => props.stroke};
   stroke-width: 2px;
   transition: all 0.3s ease-in-out;
 `;
@@ -195,7 +219,7 @@ const HexagonPath = styled.path<{ fill: string; stroke: string }>`
 const HexagonText = styled.text<{ textColor: string }>`
   font-weight: 700;
   font-size: 20px;
-  fill: ${props => props.textColor};
+  fill: ${(props) => props.textColor};
   text-anchor: middle;
   pointer-events: none;
   user-select: none;
