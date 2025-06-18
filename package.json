@@ -14,7 +14,11 @@
     "prepare": "husky"
   },
   "lint-staged": {
-  "**/*.{ts,tsx}": "eslint --fix"
+    "**/*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
