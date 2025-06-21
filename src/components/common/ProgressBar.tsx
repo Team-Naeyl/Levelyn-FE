@@ -16,7 +16,10 @@ export const ProgressBar = ({ variant, label, total, current, width, height }: P
   return (
     <Container width={width}>
       {label && <Label>{label}</Label>}
-      <Wrapper height={height} variant={variant}>
+      <Wrapper
+        height={height}
+        variant={variant}
+      >
         <Progress
           variant={variant}
           style={{ width: `${progressPercentage}%` }}

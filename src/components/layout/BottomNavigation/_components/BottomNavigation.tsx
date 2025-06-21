@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Icon } from '@iconify/react';
+import type { IconifyIcon } from '@iconify/react';
 import homeIcon from '@iconify-icons/material-symbols/home';
 import inventoryIcon from '@iconify-icons/material-symbols/backpack';
 import profileIcon from '@iconify-icons/material-symbols/person';
@@ -8,7 +9,7 @@ import { css } from '@emotion/react';
 
 interface NavItem {
   label: string;
-  icon: any;
+  icon: IconifyIcon;
   key: string;
 }
 

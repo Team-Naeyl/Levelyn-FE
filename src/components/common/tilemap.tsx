@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 const MAP_WIDTH = 360;
 const MAP_HEIGHT = 480;
 const HEX_SIZE = 60;
+
 const MAX_HEXAGONS = 8;
 
 const CATEGORIES = {
@@ -182,6 +183,7 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
+
 `;
 
 const MapContainer = styled.div`
