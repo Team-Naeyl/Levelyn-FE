@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 
-const MAP_WIDTH = 296;
-const MAP_HEIGHT = 460;
-const HEX_SIZE = 40;
+const MAP_WIDTH = 360;
+const MAP_HEIGHT = 480;
+const HEX_SIZE = 60;
+
 const MAX_HEXAGONS = 8;
 
 const CATEGORIES = {
@@ -13,7 +14,6 @@ const CATEGORIES = {
 } as const;
 
 type CategoryKey = keyof typeof CATEGORIES;
-const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
 
 interface Hexagon {
   id: string;
@@ -133,25 +133,6 @@ export const TileMap = () => {
     return `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`;
   }, [hexagonCluster]);
 
-  //테스트용 함수
-  const resetState = () => {
-    setCompletedStep(0);
-    setTaskCategories({});
-  };
-
-  const generateNewCluster = () => {
-    setMapSeed((prev) => prev + 1);
-    resetState();
-  };
-
-  const completeTask = (category: CategoryKey) => {
-    const nextStep = completedStep + 1;
-    if (nextStep > hexagonCluster.length) return;
-
-    setCompletedStep(nextStep);
-    setTaskCategories((prev) => ({ ...prev, [nextStep]: category }));
-  };
-
   return (
     <Container>
       <MapContainer>
@@ -196,12 +177,13 @@ export const TileMap = () => {
 };
 
 const Container = styled.div`
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 24px;
-  min-height: 100vh;
-  color: white;
+  justify-content: center;
+  overflow: hidden;
+
 `;
 
 const MapContainer = styled.div`
