@@ -88,7 +88,9 @@ const Trigger = styled.button<{ isPlaceholder?: boolean }>`
   `}
 `;
 
-const ArrowIcon = styled(Icon)<{ isOpen: boolean }>`
+const ArrowIcon = styled(Icon, {
+  shouldForwardProp: (prop) => !['isOpen'].includes(prop),
+})<{ isOpen: boolean }>`
   ${({ theme, isOpen }) => css`
     margin-left: 8px;
     font-size: 20px;
