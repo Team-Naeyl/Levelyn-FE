@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Inventory from './pages/Inventory';
 import BottomNavigationLayout from './components/layout/BottomNavigation/BottomNavigationLayout';
 import Home from './pages/home';
+import Profile from './pages/Profile';
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
       {
         path: 'inventory',
         element: <Inventory />,
+      },
+      {
+        path: 'profile',
+        element: <Profile />,
       },
     ],
   },
