@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
 import Drawer from '../../components/common/Drawer';
@@ -23,6 +24,8 @@ const mockUser = {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [todos, setTodos] = useState(mockTodos);
 
@@ -31,7 +34,7 @@ export default function Home() {
   };
 
   const handleAddTodo = () => {
-    console.log('Add new todo');
+    navigate('/todoform');
   };
 
   const handleCheckTodo = (id: string, checked: boolean) => {
