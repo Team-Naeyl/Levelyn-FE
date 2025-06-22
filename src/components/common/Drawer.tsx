@@ -21,7 +21,7 @@ interface DrawerProps {
   itemCount?: number;
 }
 
-export const Drawer = ({ children, isOpen = false, onToggle, onAdd, itemCount = 0 }: DrawerProps) => {
+export default function Drawer({ children, isOpen = false, onToggle, onAdd, itemCount = 0 }: DrawerProps) {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [currentY, setCurrentY] = useState(0);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -139,7 +139,7 @@ export const Drawer = ({ children, isOpen = false, onToggle, onAdd, itemCount = 
       )}
     </>
   );
-};
+}
 
 const DrawerContainer = styled.div<{ isOpen: boolean }>`
   ${({ theme, isOpen }) => css`

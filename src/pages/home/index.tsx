@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import styled from '@emotion/styled';
 
-import { Drawer } from '../../components/common/Drawer';
-import { TodoItem } from '../../components/common/TodoItem';
-import { ProgressBar } from '../../components/common/ProgressBar';
+import Drawer from '../../components/common/Drawer';
+import TodoItem from '../../components/common/TodoItem';
+import ProgressBar from '../../components/common/ProgressBar';
 import TileMap from '../../components/common/tilemap';
 
 const mockTodos = [

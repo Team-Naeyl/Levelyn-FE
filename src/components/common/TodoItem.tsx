@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { Checkbox } from './CheckBox';
+import Checkbox from './CheckBox';
 
 type CategoryType = '공부' | '운동' | '업무' | '생활' | '기타';
 
@@ -36,7 +36,7 @@ const categoryColors = {
   },
 };
 
-export const TodoItem = ({ id, text, checked, category, onCheck }: TodoItemProps) => {
+export default function TodoItem({ id, text, checked, category, onCheck }: TodoItemProps) {
   return (
     <ItemWrapper category={category}>
       <Checkbox
@@ -47,7 +47,7 @@ export const TodoItem = ({ id, text, checked, category, onCheck }: TodoItemProps
       {category && <CategoryLabel category={category}>{category}</CategoryLabel>}
     </ItemWrapper>
   );
-};
+}
 
 const ItemWrapper = styled.div<{ category?: CategoryType }>`
   ${({ theme, category }) => css`
@@ -75,7 +75,9 @@ const ItemText = styled.span<{ checked: boolean }>`
     color: ${theme.colors.black};
     text-decoration: ${checked ? 'line-through' : 'none'};
     opacity: ${checked ? 0.6 : 1};
-    transition: opacity 0.2s, text-decoration 0.2s;
+    transition:
+      opacity 0.2s,
+      text-decoration 0.2s;
   `}
 `;
 

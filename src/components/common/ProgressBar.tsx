@@ -10,7 +10,7 @@ interface ProgressBarProps {
   height: number;
 }
 
-export const ProgressBar = ({ variant, label, total, current, width, height }: ProgressBarProps) => {
+export default function ProgressBar({ variant, label, total, current, width, height }: ProgressBarProps) {
   const progressPercentage = total > 0 ? (current / total) * 100 : 0;
 
   return (
@@ -28,7 +28,7 @@ export const ProgressBar = ({ variant, label, total, current, width, height }: P
       </Wrapper>
     </Container>
   );
-};
+}
 
 const Container = styled.div<{ width: number }>`
   display: flex;
