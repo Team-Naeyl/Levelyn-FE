@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Inventory from './pages/Inventory';
 import BottomNavigationLayout from './components/layout/BottomNavigation/BottomNavigationLayout';
 import Home from './pages/home';
+import TodoForm from './pages/TodoForm';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
         element: <Inventory />,
       },
     ],
+  },
+  {
+    path: 'todoform',
+    element: <TodoForm />,
   },
 ]);
 
