@@ -59,6 +59,7 @@ const HeaderContainer = styled.header`
   justify-content: space-between;
   height: 56px;
   padding: 0 12px;
+  border-bottom: 1px solid #f8f8f8;
 `;
 
 const Side = styled.div`
