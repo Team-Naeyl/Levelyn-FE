@@ -28,7 +28,7 @@ const FieldWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 344px;
+  width: 100%;
 `;
 
 const Label = styled.label`
