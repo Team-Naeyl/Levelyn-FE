@@ -59,7 +59,7 @@ const axialToPixel = (q: number, r: number, size: number): [number, number] => {
   return [x, y];
 };
 
-export const TileMap = () => {
+export default function TileMap() {
   const [mapSeed, setMapSeed] = useState(1);
   const [completedStep, setCompletedStep] = useState(0);
   const [taskCategories, setTaskCategories] = useState<{ [key: number]: CategoryKey }>({});
@@ -174,16 +174,15 @@ export const TileMap = () => {
       </MapContainer>
     </Container>
   );
-};
+}
 
 const Container = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   overflow: hidden;
-
 `;
 
 const MapContainer = styled.div`
