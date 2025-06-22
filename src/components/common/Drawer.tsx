@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { Icon } from '@iconify/react';
 import addIcon from '@iconify-icons/material-symbols/add';
-import { Button } from './Button';
+import Button from './Button';
 
 const HEADER_HEIGHT = 60;
 const DRAWER_HEADER_HEIGHT = 60;
