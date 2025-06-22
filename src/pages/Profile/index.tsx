@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
-import ProgressBar from '../../components/common/ProgressBar';
 import { css } from '@emotion/react';
+import ProgressBar from '../../components/common/ProgressBar';
+import Button from '../../components/common/Button';
 
 const mockCharacter = {
   nickname: '콩콩잉',
@@ -46,7 +47,16 @@ export default function Profile() {
         </InfoContainer>
       </CharacterSection>
       <StatsSection>통계</StatsSection>
-      <LogoutButton>로그아웃</LogoutButton>
+      <LogoutButtonSection>
+        <Button
+          label="로그아웃"
+          variant="texted"
+          color="error"
+          size="small"
+          fullWidth
+          onClick={() => {}}
+        />
+      </LogoutButtonSection>
     </Container>
   );
 }
@@ -92,12 +102,10 @@ const ImagePlaceholder = styled.div`
 `;
 
 const InfoContainer = styled.div`
-  ${({ theme }) => css`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-  `}
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 `;
 
 const NameLevelRow = styled.div`
@@ -149,14 +157,8 @@ const StatsSection = styled.div`
   `}
 `;
 
-const LogoutButton = styled.button`
-  ${({ theme }) => css`
-    color: ${theme.colors.error[500]};
-    background: none;
-    border: none;
-    font-size: ${theme.textStyles.H_B_16};
-    cursor: pointer;
-    margin-top: auto;
-    padding-bottom: 20px;
-  `}
+const LogoutButtonSection = styled.div`
+  cursor: pointer;
+  width: 100%;
+  margin-top: auto;
 `;
