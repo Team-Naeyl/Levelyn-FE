@@ -61,7 +61,7 @@ const getVariantStyle = (theme: any, variant: string, color: string = 'primary')
   }
 };
 
-export const Button = ({
+export default function Button({
   label,
   onClick,
   disabled,
@@ -73,7 +73,7 @@ export const Button = ({
   className,
   color = 'primary',
   ...props
-}: ButtonProps) => {
+}: ButtonProps) {
   const isIconOnly = !!icon && !label;
   const isIconWithLabel = !!icon && !!label;
 
@@ -111,7 +111,7 @@ export const Button = ({
       {label}
     </TextButton>
   );
-};
+}
 
 const IconButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'color'>>`
   ${({ theme, variant = 'contained', size = 'medium', color = 'primary' }) => {

@@ -16,7 +16,13 @@ interface DropdownProps {
   onChange?: (value: string | number) => void;
 }
 
-export const Dropdown = ({ fullWidth, placeholder = '선택하세요', loading, options = [], onChange }: DropdownProps) => {
+export default function Dropdown({
+  fullWidth,
+  placeholder = '선택하세요',
+  loading,
+  options = [],
+  onChange,
+}: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<{ label: string; value: string | number } | undefined>(undefined);
 
@@ -53,7 +59,7 @@ export const Dropdown = ({ fullWidth, placeholder = '선택하세요', loading, 
       {isOpen && loading && <LoadingItem>로딩 중...</LoadingItem>}
     </Wrapper>
   );
-};
+}
 
 const Wrapper = styled.div<{ fullWidth?: boolean }>`
   position: relative;

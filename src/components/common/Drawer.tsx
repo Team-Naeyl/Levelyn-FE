@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import { Icon } from '@iconify/react';
 import addIcon from '@iconify-icons/material-symbols/add';
+import Button from './Button';
 
 const HEADER_HEIGHT = 60;
 const DRAWER_HEADER_HEIGHT = 60;
@@ -20,14 +21,14 @@ interface DrawerProps {
   itemCount?: number;
 }
 
-export const Drawer = ({ children, isOpen = false, onToggle, onAdd, itemCount = 0 }: DrawerProps) => {
+export default function Drawer({ children, isOpen = false, onToggle, onAdd, itemCount = 0 }: DrawerProps) {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [currentY, setCurrentY] = useState(0);
   const drawerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
-  const bottomNavHeight = 100;
+  const bottomNavHeight = 20;
 
   const updateWindowHeight = useCallback(() => {
     setWindowHeight(window.innerHeight);
@@ -113,40 +114,32 @@ export const Drawer = ({ children, isOpen = false, onToggle, onAdd, itemCount = 
   };
 
   return (
-    <DrawerContainer
-      ref={drawerRef}
-      isOpen={isOpen}
-      style={{ transform: `translateX(-50%) translateY(${currentY}px)` }}
-    >
-      <DrawerHandle
-        onClick={handleHandleClick}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      />
-      <DrawerContent
-        ref={contentRef}
+    <>
+      <DrawerContainer
+        ref={drawerRef}
+        isOpen={isOpen}
+        style={{ transform: `translateX(-50%) translateY(${currentY}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {children}
-      </DrawerContent>
-      {isOpen && (
+        <DrawerHandle onClick={handleHandleClick} />
+        <DrawerContent ref={contentRef}>{children}</DrawerContent>
+      </DrawerContainer>
+      {isOpen && onAdd && (
         <AddButtonContainer>
-          <AddButton onClick={onAdd}>
-            <Icon
-              icon={addIcon}
-              width="24"
-              height="24"
-            />
-            <span>할일 추가</span>
-          </AddButton>
+          <Button
+            label="할일 추가"
+            onClick={onAdd}
+            fullWidth
+            color="primary"
+            icon={<Icon icon={addIcon} />}
+          />
         </AddButtonContainer>
       )}
-    </DrawerContainer>
+    </>
   );
-};
+}
 
 const DrawerContainer = styled.div<{ isOpen: boolean }>`
   ${({ theme, isOpen }) => css`
@@ -192,6 +185,7 @@ const DrawerContent = styled.div`
 const AddButtonContainer = styled.div`
   ${({ theme }) => css`
     position: fixed;
+    padding: 0 20px;
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -199,34 +193,9 @@ const AddButtonContainer = styled.div`
     max-width: 480px;
     height: 80px;
     background: ${theme.colors.white};
-    border-top: 1px solid ${theme.colors.gray[200]};
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
-  `}
-`;
-
-const AddButton = styled.button`
-  ${({ theme }) => css`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: ${theme.colors.primary[500]};
-    color: ${theme.colors.white};
-    border: none;
-    border-radius: 8px;
-    ${theme.textStyles.T_SB_14};
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: ${theme.colors.primary[600]};
-    }
-
-    &:active {
-      background: ${theme.colors.primary[700]};
-    }
   `}
 `;

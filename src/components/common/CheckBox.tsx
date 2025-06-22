@@ -9,16 +9,18 @@ interface CheckboxProps {
   disabled?: boolean;
 }
 
-export const Checkbox = ({ checked, onChange, disabled }: CheckboxProps) => (
-  <CheckboxWrapper
-    checked={checked}
-    disabled={disabled}
-    onClick={() => !disabled && onChange(!checked)}
-    tabIndex={0}
-  >
-    {checked && <CheckIcon icon={checkIcon} />}
-  </CheckboxWrapper>
-);
+export default function Checkbox({ checked, onChange, disabled }: CheckboxProps) {
+  return (
+    <CheckboxWrapper
+      checked={checked}
+      disabled={disabled}
+      onClick={() => !disabled && onChange(!checked)}
+      tabIndex={0}
+    >
+      {checked && <CheckIcon icon={checkIcon} />}
+    </CheckboxWrapper>
+  );
+}
 
 const CheckboxWrapper = styled.button<{ checked: boolean; disabled?: boolean }>`
   ${({ theme, checked, disabled }) => css`
