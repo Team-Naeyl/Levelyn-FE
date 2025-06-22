@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { ItemBox } from '../../components/common/ItemBox';
+import Header from '../../components/common/Header';
 
 type InventoryTab = 'skill' | 'item';
 
@@ -44,8 +45,11 @@ export default function Inventory() {
 
   return (
     <Wrapper>
-      <Header>
-        <Title>인벤토리</Title>
+      <Menu>
+        <Header
+          isMain={false}
+          title="인벤토리"
+        />
         <TabSelector>
           <TabButton
             selected={tab === 'skill'}
@@ -60,7 +64,7 @@ export default function Inventory() {
             아이템
           </TabButton>
         </TabSelector>
-      </Header>
+      </Menu>
 
       <main>
         {tab === 'skill' && (
@@ -119,13 +123,8 @@ const Wrapper = styled.div`
   flex-direction: column;
 `;
 
-const Header = styled.header`
+const Menu = styled.header`
   text-align: center;
-`;
-
-const Title = styled.div`
-  ${({ theme }) => theme.textStyles.B_R_20};
-  padding: 12px;
 `;
 
 const TabSelector = styled.div`

@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import ProgressBar from '../../components/common/ProgressBar';
 import Button from '../../components/common/Button';
+import Header from '../../components/common/Header';
 
 const mockCharacter = {
   nickname: '콩콩잉',
@@ -19,7 +20,10 @@ const mockCharacter = {
 export default function Profile() {
   return (
     <Container>
-      <Header>프로필</Header>
+      <Header
+        isMain={false}
+        title="프로필"
+      />
       <CharacterSection>
         <ImagePlaceholder />
         <InfoContainer>
@@ -68,17 +72,6 @@ const Container = styled.div`
   height: 100vh;
   padding: 0 20px 80px;
   box-sizing: border-box;
-`;
-
-const Header = styled.header`
-  ${({ theme }) => css`
-    width: 100%;
-    padding: 20px 0;
-    font-size: ${theme.textStyles.H_B_18};
-    text-align: center;
-    color: ${theme.colors.black};
-    margin-bottom: 20px;
-  `}
 `;
 
 const CharacterSection = styled.div`
