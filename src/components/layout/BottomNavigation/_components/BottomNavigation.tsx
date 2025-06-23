@@ -13,7 +13,7 @@ interface NavItem {
   key: string;
 }
 
-export const BottomNavigation = () => {
+export default function BottomNavigation() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -41,7 +41,7 @@ export const BottomNavigation = () => {
       ))}
     </Wrapper>
   );
-};
+}
 
 const Wrapper = styled.nav`
   ${({ theme }) => css`

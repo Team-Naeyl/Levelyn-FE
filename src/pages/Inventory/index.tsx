@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import styled from '@emotion/styled';
-import { ItemBox } from '../../components/common/ItemBox';
+import ItemBox from '../../components/common/ItemBox';
 import Header from '../../components/common/Header';
 
 type InventoryTab = 'skill' | 'item';

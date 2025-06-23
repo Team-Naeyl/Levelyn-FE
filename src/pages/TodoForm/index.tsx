@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import Header from '../../components/common/Header';
-import { TextField } from '../../components/common/TextField';
+import TextField from '../../components/common/TextField';
 import Dropdown from '../../components/common/Dropdown';
 import Button from '../../components/common/Button';
 
