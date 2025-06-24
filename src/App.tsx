@@ -3,6 +3,7 @@ import Inventory from './pages/Inventory';
 import BottomNavigationLayout from './components/layout/BottomNavigation/BottomNavigationLayout';
 import Home from './pages/home';
 import Profile from './pages/Profile';
+import TodoForm from './pages/TodoForm';
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
     ],
+  },
+  {
+    path: 'todoform',
+    element: <TodoForm />,
   },
 ]);
 

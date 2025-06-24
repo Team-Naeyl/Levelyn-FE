@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ItemBox } from '../components/common/ItemBox';
+import ItemBox from '../components/common/ItemBox';
 import styled from '@emotion/styled';
 
 const meta: Meta<typeof ItemBox> = {

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { TextField } from '../components/common/TextField';
+import TextField from '../components/common/TextField';
 
 const meta: Meta<typeof TextField> = {
   title: 'Components/TextField',
