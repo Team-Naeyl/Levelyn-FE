@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
 import Drawer from '../../components/common/Drawer';
 import TodoItem from '../../components/common/TodoItem';
 import ProgressBar from '../../components/common/ProgressBar';
 import TileMap from '../../components/common/tilemap';
+import Header from '../../components/common/Header';
 
 const mockTodos = [
   { id: '1', text: '프로젝트 초기 설정하기', checked: true, category: '업무' as const },
@@ -22,6 +24,8 @@ const mockUser = {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [todos, setTodos] = useState(mockTodos);
 
@@ -30,7 +34,7 @@ export default function Home() {
   };
 
   const handleAddTodo = () => {
-    console.log('Add new todo');
+    navigate('/todoform');
   };
 
   const handleCheckTodo = (id: string, checked: boolean) => {
@@ -39,9 +43,7 @@ export default function Home() {
 
   return (
     <Container>
-      <Header>
-        <span>임시 헤더</span>
-      </Header>
+      <Header />
       <UserInfo>
         <NameLevelRow>
           <span>{mockUser.name}</span>
@@ -85,18 +87,6 @@ const Container = styled.div`
   height: 100vh;
   position: relative;
   overflow: hidden;
-`;
-
-const Header = styled.header`
-  height: 60px;
-  padding: 0 20px;
-  background-color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
-  border-bottom: 1px solid #e0e0e0;
 `;
 
 const UserInfo = styled.div`

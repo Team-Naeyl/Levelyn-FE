@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BottomNavigation } from '../components/layout/BottomNavigation/_components/BottomNavigation';
+import BottomNavigation from '../components/layout/BottomNavigation/_components/BottomNavigation';
 import { MemoryRouter } from 'react-router-dom';
 
 const meta: Meta<typeof BottomNavigation> = {

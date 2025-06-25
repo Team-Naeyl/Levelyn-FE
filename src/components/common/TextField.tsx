@@ -9,7 +9,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: 'primary' | 'secondary';
 }
 
-export const TextField = ({ label, error, variant, ...props }: TextFieldProps) => {
+export default function TextField({ label, error, variant, ...props }: TextFieldProps) {
   return (
     <FieldWrapper>
       {label && <Label>{label}</Label>}
@@ -22,13 +22,13 @@ export const TextField = ({ label, error, variant, ...props }: TextFieldProps) =
       </InputWrapper>
     </FieldWrapper>
   );
-};
+}
 
 const FieldWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 344px;
+  width: 100%;
 `;
 
 const Label = styled.label`

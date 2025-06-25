@@ -9,7 +9,7 @@ interface ItemBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   onUnequip?: () => void;
 }
 
-export const ItemBox = ({ imageURL, size = 'fullwidth', equipped, onUnequip, ...props }: ItemBoxProps) => {
+export default function ItemBox({ imageURL, size = 'fullwidth', equipped, onUnequip, ...props }: ItemBoxProps) {
   return (
     <Wrapper
       size={size}
@@ -26,7 +26,7 @@ export const ItemBox = ({ imageURL, size = 'fullwidth', equipped, onUnequip, ...
       />
     </Wrapper>
   );
-};
+}
 
 const Wrapper = styled.div<{ size: 'fullwidth' | 'mini' }>`
   ${({ size, theme }) => `
