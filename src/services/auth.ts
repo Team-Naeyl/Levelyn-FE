@@ -12,3 +12,11 @@ export const renewToken = async (): Promise<RenewResponse> => {
   const response = await api.get<RenewResponse>('/api/auth/renew');
   return response.data;
 };
+
+export const kakaoLogin = async (code: string): Promise<void> => {
+  await api.get('/api/auth/sign-in', {
+    params: {
+      code,
+    },
+  });
+};
