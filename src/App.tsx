@@ -7,6 +7,7 @@ import Login from './pages/login';
 import { useAuth } from './contexts/AuthContext';
 import Profile from './pages/Profile';
 import TodoForm from './pages/TodoForm';
+import KakaoCallback from './pages/KakaoCallback';
 
 const PrivateRoute = ({ children }: PropsWithChildren) => {
   const { isLoggedIn, isLoading } = useAuth();
@@ -66,6 +67,10 @@ const loggedOutRouter = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/auth/kakao/callback',
+    element: <KakaoCallback />,
   },
   {
     path: '*',
