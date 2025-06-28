@@ -8,6 +8,7 @@ interface AuthContextType {
   accessToken: string | null;
   logout: () => void;
   isLoading: boolean;
+  checkAuthStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,26 +18,35 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await renewToken();
-        if (response.accessToken) {
-          setAccessToken(response.accessToken);
-          setIsLoggedIn(true);
-          api.defaults.headers.common['Authorization'] = `Bearer ${response.accessToken}`;
-        }
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 500) {
-          console.error('토큰 갱신 중 서버 오류 발생. 백엔드 로그를 확인하세요.', error);
-        } else {
-          console.info('로그인 정보가 없거나 세션이 만료되었습니다.');
-        }
-        setIsLoggedIn(false);
-      } finally {
-        setIsLoading(false);
+  const clearAuthState = () => {
+    setAccessToken(null);
+    setIsLoggedIn(false);
+    delete api.defaults.headers.common['Authorization'];
+  };
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await renewToken();
+      if (response.accessToken) {
+        setAccessToken(response.accessToken);
+        setIsLoggedIn(true);
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.accessToken}`;
+      } else {
+        clearAuthState();
       }
-    };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 500) {
+        console.error('토큰 갱신 중 서버 오류 발생. 백엔드 로그를 확인하세요.', error);
+      } else {
+        console.info('로그인 정보가 없거나 세션이 만료되었습니다.');
+      }
+      clearAuthState();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     checkAuthStatus();
   }, []);
 
@@ -46,13 +56,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     } catch (error) {
       console.error('로그아웃 처리 중 오류가 발생했습니다.', error);
     } finally {
-      setAccessToken(null);
-      setIsLoggedIn(false);
-      delete api.defaults.headers.common['Authorization'];
+      clearAuthState();
     }
   };
 
-  const value = { isLoggedIn, accessToken, logout, isLoading };
+  const value = { isLoggedIn, accessToken, logout, isLoading, checkAuthStatus };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
