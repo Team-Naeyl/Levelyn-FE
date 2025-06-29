@@ -1,43 +1,80 @@
-import Button from '../../components/common/Button';
 import styled from '@emotion/styled';
-import { API_BASE_URL } from '../../services/api';
+import Button from '../../components/common/Button';
+import splashImage from '../../assets/splash.png';
+import { css } from '@emotion/react';
 
 export default function Login() {
   const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/api/auth/sign-in`;
+    const KAKAO_REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+
+    if (!KAKAO_REST_API_KEY || !REDIRECT_URI) {
+      alert('카카오 로그인 설정 오류');
+      console.error('카카오 로그인 설정 오류');
+      return;
+    }
+
+    const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+    window.location.href = kakaoURL;
   };
 
   return (
     <Container>
-      <Logo>Levelyn</Logo>
-      <ButtonWrapper>
+      <Title>Levelyn</Title>
+      <ButtonContainer>
         <Button
           label="카카오로 시작하기"
+          color="primary"
           onClick={handleLogin}
           fullWidth
         />
-      </ButtonWrapper>
+      </ButtonContainer>
     </Container>
   );
 }
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  padding: 0 20px;
+  ${({ theme }) => css`
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background-color: ${theme.colors.white};
+  `}
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background-image: url(${splashImage});
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    filter: grayscale(100%);
+  }
 `;
 
-const Logo = styled.div`
-  ${({ theme }) => theme.textStyles.H_B_32}
-  margin-bottom: 150px;
+const Title = styled.h1`
+  ${({ theme }) => css`
+    ${theme.textStyles.H_B_32};
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  `}
 `;
 
-const ButtonWrapper = styled.div`
-  width: 100%;
-  max-width: 320px;
+const ButtonContainer = styled.div`
+  width: calc(100% - 40px);
+  max-width: 440px;
   position: absolute;
-  bottom: 50px;
+  bottom: 80px;
+  z-index: 1;
 `;

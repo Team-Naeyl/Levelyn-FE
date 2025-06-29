@@ -6,6 +6,7 @@ import api from '../services/api';
 interface AuthContextType {
   isLoggedIn: boolean;
   accessToken: string | null;
+  login: (token: string) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -17,28 +18,17 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await renewToken();
-        if (response.accessToken) {
-          setAccessToken(response.accessToken);
-          setIsLoggedIn(true);
-          api.defaults.headers.common['Authorization'] = `Bearer ${response.accessToken}`;
-        }
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 500) {
-          console.error('토큰 갱신 중 서버 오류 발생. 백엔드 로그를 확인하세요.', error);
-        } else {
-          console.info('로그인 정보가 없거나 세션이 만료되었습니다.');
-        }
-        setIsLoggedIn(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkAuthStatus();
-  }, []);
+  const login = (token: string) => {
+    setAccessToken(token);
+    setIsLoggedIn(true);
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  };
+
+  const clearAuthState = () => {
+    setAccessToken(null);
+    setIsLoggedIn(false);
+    delete api.defaults.headers.common['Authorization'];
+  };
 
   const logout = async () => {
     try {
@@ -46,13 +36,11 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     } catch (error) {
       console.error('로그아웃 처리 중 오류가 발생했습니다.', error);
     } finally {
-      setAccessToken(null);
-      setIsLoggedIn(false);
-      delete api.defaults.headers.common['Authorization'];
+      clearAuthState();
     }
   };
 
-  const value = { isLoggedIn, accessToken, logout, isLoading };
+  const value = { isLoggedIn, accessToken, login, logout, isLoading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
