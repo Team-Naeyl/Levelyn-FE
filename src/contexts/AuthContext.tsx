@@ -1,6 +1,5 @@
 import { createContext, useState, useContext, useEffect, type PropsWithChildren } from 'react';
-import axios from 'axios';
-import { renewToken, signOut as performSignOut } from '../services/auth';
+import { signOut as performSignOut } from '../services/auth';
 import api from '../services/api';
 
 interface AuthContextType {
@@ -17,6 +16,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   const login = (token: string) => {
     setAccessToken(token);
