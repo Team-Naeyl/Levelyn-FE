@@ -1,19 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
+import mockImage from '../../assets/mockimge.png';
+import avatarImage from '../../assets/avatar.png';
+import { Icon } from '@iconify/react';
+import star from '@iconify-icons/material-symbols/star';
 
-const MAP_WIDTH = 360;
-const MAP_HEIGHT = 480;
-const HEX_SIZE = 60;
+const MAP_WIDTH = 296;
+const MAP_HEIGHT = 460;
+const HEX_SIZE = 40;
+export const MAX_HEXAGONS = 8;
 
-const MAX_HEXAGONS = 8;
-
-const CATEGORIES = {
-  공부: { color: '#bfdbfe', name: '공부' },
-  운동: { color: '#bbf7d0', name: '운동' },
-  업무: { color: '#fef08a', name: '업무' },
+export const CATEGORIES = {
+  공부: { color: '#F0FFE4', name: '공부' },
+  운동: { color: '#E0FFF5', name: '운동' },
+  업무: { color: '#FFF3E0', name: '업무' },
+  생활: { color: '#FFEBE9', name: '생활' },
+  기타: { color: '#EAEEF2', name: '기타' },
 } as const;
 
-type CategoryKey = keyof typeof CATEGORIES;
+export type CategoryKey = keyof typeof CATEGORIES;
 
 interface Hexagon {
   id: string;
@@ -22,6 +27,15 @@ interface Hexagon {
   x: number;
   y: number;
   step: number;
+}
+
+interface Todo {
+  checked: boolean;
+  category: CategoryKey;
+}
+
+interface TileMapProps {
+  todos: Todo[];
 }
 
 const seededRandom = (seed: number, min = 0, max = 1): number => {
@@ -59,10 +73,48 @@ const axialToPixel = (q: number, r: number, size: number): [number, number] => {
   return [x, y];
 };
 
-export default function TileMap() {
+function usePrevious<T>(value: T) {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref.current;
+}
+
+export default function TileMap({ todos }: TileMapProps) {
   const [mapSeed, setMapSeed] = useState(1);
-  const [completedStep, setCompletedStep] = useState(0);
+  const [completedTodoOffset, setCompletedTodoOffset] = useState(0);
   const [taskCategories, setTaskCategories] = useState<{ [key: number]: CategoryKey }>({});
+
+  const totalCompleted = useMemo(() => todos.filter((todo) => todo.checked).length, [todos]);
+  const completedStep = totalCompleted - completedTodoOffset;
+  const prevTodos = usePrevious(todos);
+
+  useEffect(() => {
+    if (!prevTodos) return;
+
+    const newlyCheckedTodo = todos.find((todo, i) => todo.checked && !prevTodos[i]?.checked);
+
+    if (newlyCheckedTodo) {
+      const currentStepForNewTodo = totalCompleted - completedTodoOffset;
+      setTaskCategories((prev) => ({
+        ...prev,
+        [currentStepForNewTodo]: newlyCheckedTodo.category,
+      }));
+    }
+  }, [todos, prevTodos, totalCompleted, completedTodoOffset]);
+
+  useEffect(() => {
+    if (completedStep >= MAX_HEXAGONS) {
+      const timer = setTimeout(() => {
+        setMapSeed((prev) => prev + 1);
+        setCompletedTodoOffset((prev) => prev + MAX_HEXAGONS);
+        setTaskCategories({});
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [completedStep]);
 
   const hexagonCluster = useMemo((): Hexagon[] => {
     let currentSeed = mapSeed;
@@ -148,7 +200,6 @@ export default function TileMap() {
 
             const fill = isCompleted && categoryKey ? CATEGORIES[categoryKey].color : 'white';
             const stroke = isCompleted || isNext ? 'black' : '#e5e7eb';
-            const textColor = isCompleted || isNext ? 'black' : '#e5e7eb';
 
             return (
               <g
@@ -160,13 +211,32 @@ export default function TileMap() {
                   fill={fill}
                   stroke={stroke}
                 />
-                <HexagonText
-                  x="0"
-                  y="6"
-                  textColor={textColor}
-                >
-                  {hex.step}
-                </HexagonText>
+                {isCompleted ? (
+                  <image
+                    href={mockImage}
+                    x={-HEX_SIZE / 2}
+                    y={-HEX_SIZE / 2}
+                    width={HEX_SIZE}
+                    height={HEX_SIZE}
+                  />
+                ) : isNext ? (
+                  <image
+                    href={avatarImage}
+                    x={-HEX_SIZE / 2}
+                    y={-HEX_SIZE / 2}
+                    width={HEX_SIZE}
+                    height={HEX_SIZE}
+                  />
+                ) : (
+                  <Icon
+                    icon={star}
+                    x={-HEX_SIZE / 2 + 4}
+                    y={-HEX_SIZE / 2 + 4}
+                    width={HEX_SIZE - 8}
+                    height={HEX_SIZE - 8}
+                    color={'#e5e7eb'}
+                  />
+                )}
               </g>
             );
           })}
@@ -195,14 +265,4 @@ const HexagonPath = styled.path<{ fill: string; stroke: string }>`
   stroke: ${(props) => props.stroke};
   stroke-width: 2px;
   transition: all 0.3s ease-in-out;
-`;
-
-const HexagonText = styled.text<{ textColor: string }>`
-  font-weight: 700;
-  font-size: 20px;
-  fill: ${(props) => props.textColor};
-  text-anchor: middle;
-  pointer-events: none;
-  user-select: none;
-  transition: fill 0.3s ease-in-out;
 `;
