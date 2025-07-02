@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
-import { Button } from '../components/common/Button';
+import Button from '../components/common/Button';
 import { Icon } from '@iconify/react';
 import addIcon from '@iconify-icons/material-symbols/add';
 
