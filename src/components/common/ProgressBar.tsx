@@ -6,7 +6,7 @@ interface ProgressBarProps {
   label: string;
   total: number;
   current: number;
-  width: number;
+  width: number | string;
   height: number;
 }
 
@@ -30,11 +30,11 @@ export default function ProgressBar({ variant, label, total, current, width, hei
   );
 }
 
-const Container = styled.div<{ width: number }>`
+const Container = styled.div<{ width: number | string }>`
   display: flex;
   align-items: center;
   gap: 4px;
-  width: ${({ width }) => `${width}px`};
+  width: ${({ width }) => (typeof width === 'number' ? `${width}px` : width)};
 `;
 
 const Label = styled.label`
