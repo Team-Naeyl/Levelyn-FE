@@ -7,6 +7,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: boolean;
   variant?: 'primary' | 'secondary';
+  ref?: React.Ref<HTMLInputElement>;
 }
 
 export default function TextField({ label, error, variant, ...props }: TextFieldProps) {
