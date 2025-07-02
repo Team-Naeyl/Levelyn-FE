@@ -149,7 +149,7 @@ export default function Home() {
         />
       </UserInfo>
       <Content>
-        <TileMap />
+        <TileMap todos={todos} />
       </Content>
       <Drawer
         isOpen={isDrawerOpen}
