@@ -1,47 +1,123 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import ItemBox from '../../components/common/ItemBox';
 import Header from '../../components/common/Header';
+import ItemModal from './.components/ItemModal';
+import api from '../../services/api';
 
 type InventoryTab = 'skill' | 'item';
 
 interface InventoryItem {
   id: number;
+  name: string;
+  description: string;
   imageURL: string;
   equipped: boolean;
 }
-
-export default function Inventory() {
-  // TODO: API 서비스 연결 및 실제 스킬, 아이템 데이터 적용
+export default function InventoryPage() {
   const [tab, setTab] = useState<InventoryTab>('skill');
-  const initialSkills: InventoryItem[] = Array.from({ length: 9 }, (_, i) => ({
-    id: i + 1,
-    imageURL: `https://picsum.photos/seed/skill${i + 1}/64`,
-    equipped: i < 3,
-  }));
 
-  const initialItems: InventoryItem[] = Array.from({ length: 9 }, (_, i) => ({
-    id: i + 1,
-    imageURL: `https://picsum.photos/seed/skill${i + 11}/64`,
-    equipped: i < 3,
-  }));
+  const [equippedItems, setEquippedItems] = useState<InventoryItem[]>([]);
+  const [unequippedItems, setUnequippedItems] = useState<InventoryItem[]>([]);
+  const [equippedSkills, setEquippedSkills] = useState<InventoryItem[]>([]);
+  const [unequippedSkills, setUnequippedSkills] = useState<InventoryItem[]>([]);
 
-  const [skills, setSkills] = useState<InventoryItem[]>(initialItems);
-  const [items, setItems] = useState<InventoryItem[]>(initialSkills);
+  const equippedData = {
+    skill: equippedSkills,
+    item: equippedItems,
+  } as const;
 
-  const handleUnequip = (id: number, type: InventoryTab) => {
-    if (type === 'skill') {
-      setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, equipped: false } : s)));
-    } else {
-      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, equipped: false } : i)));
+  const unequippedData = {
+    skill: unequippedSkills,
+    item: unequippedItems,
+  } as const;
+
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const [itemsRes, skillsRes] = await Promise.all([
+          api.get('/api/inventory/items'),
+          api.get('/api/inventory/skills'),
+        ]);
+        const imageURL = 'https://picsum.photos/seed/item1/64';
+
+        const items: InventoryItem[] = itemsRes.data.results.map((item: InventoryItem) => ({
+          ...item,
+          imageURL,
+        }));
+
+        const skills: InventoryItem[] = skillsRes.data.userSkills.map((skill: InventoryItem) => ({
+          ...skill,
+          imageURL,
+        }));
+
+        setEquippedItems(items.filter((i) => i.equipped));
+        setUnequippedItems(items.filter((i) => !i.equipped));
+        setEquippedSkills(skills.filter((s) => s.equipped));
+        setUnequippedSkills(skills.filter((s) => !s.equipped));
+      } catch (err) {
+        console.error('인벤토리 데이터 로딩 실패:', err);
+      }
+    };
+
+    fetchInventory();
+  }, []);
+
+  const handleEquip = async (id: number, type: InventoryTab): Promise<void> => {
+    console.log('하얏');
+    console.log(id);
+    try {
+      if (type === 'skill') {
+        const newEquipped = equippedSkills.some((s) => s.id === id)
+          ? equippedSkills.filter((s) => s.id !== id)
+          : [...equippedSkills, unequippedSkills.find((s) => s.id === id)!];
+
+        if (newEquipped.length > 3) {
+          alert('스킬은 최대 3개까지만 장착할 수 있습니다.');
+          return;
+        }
+
+        await api.put('/api/inventory/skills/slot', {
+          skillIds: newEquipped.map((s) => s.id),
+        });
+
+        const newUnequipped = [...unequippedSkills, ...equippedSkills.filter((s) => !newEquipped.includes(s))].filter(
+          (s) => !newEquipped.some((e) => e.id === s.id)
+        );
+
+        setEquippedSkills(newEquipped);
+        setUnequippedSkills(newUnequipped);
+      } else {
+        const result = await api.patch('/api/inventory/items/slot', { itemIds: [id] });
+        console.log(result);
+        setEquippedItems((prev) =>
+          prev.some((i) => i.id === id)
+            ? prev.filter((i) => i.id !== id)
+            : [...prev, unequippedItems.find((i) => i.id === id)!]
+        );
+        setUnequippedItems((prev) =>
+          prev.some((i) => i.id === id)
+            ? prev.filter((i) => i.id !== id)
+            : [...prev, equippedItems.find((i) => i.id === id)!]
+        );
+      }
+    } catch (err) {
+      console.error('장착 요청 실패', err);
     }
   };
 
-  const equippedSkills = useMemo(() => skills.filter((s) => s.equipped), [skills]);
-  const unequippedSkills = useMemo(() => skills.filter((s) => !s.equipped), [skills]);
+  const openModal = (item: InventoryItem): void => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
 
-  const equippedItems = useMemo(() => items.filter((i) => i.equipped), [items]);
-  const unequippedItems = useMemo(() => items.filter((i) => !i.equipped), [items]);
+  const closeModal = (): void => {
+    setSelectedItem(null);
+    setIsModalOpen(false);
+  };
 
   return (
     <Wrapper>
@@ -67,53 +143,39 @@ export default function Inventory() {
       </Menu>
 
       <main>
-        {tab === 'skill' && (
-          <>
-            <Grid>
-              {equippedSkills.map((skill) => (
-                <ItemBox
-                  key={skill.id}
-                  imageURL={skill.imageURL}
-                  equipped
-                  onUnequip={() => handleUnequip(skill.id, 'skill')}
-                />
-              ))}
-            </Grid>
-            <Divider />
-            <Grid>
-              {unequippedSkills.map((skill) => (
-                <ItemBox
-                  key={skill.id}
-                  imageURL={skill.imageURL}
-                />
-              ))}
-            </Grid>
-          </>
-        )}
-        {tab === 'item' && (
-          <>
-            <Grid>
-              {equippedItems.map((item) => (
-                <ItemBox
-                  key={item.id}
-                  imageURL={item.imageURL}
-                  equipped
-                  onUnequip={() => handleUnequip(item.id, 'item')}
-                />
-              ))}
-            </Grid>
-            <Divider />
-            <Grid>
-              {unequippedItems.map((item) => (
-                <ItemBox
-                  key={item.id}
-                  imageURL={item.imageURL}
-                />
-              ))}
-            </Grid>
-          </>
-        )}
+        <Grid>
+          {equippedData[tab].map((el) => (
+            <ItemBox
+              key={el.id}
+              imageURL={el.imageURL}
+              equipped={true}
+              onClick={() => openModal(el)}
+            />
+          ))}
+        </Grid>
+        <Divider />
+        <Grid>
+          {unequippedData[tab].map((el) => (
+            <ItemBox
+              key={el.id}
+              imageURL={el.imageURL}
+              onClick={() => openModal(el)}
+            />
+          ))}
+        </Grid>
       </main>
+
+      {selectedItem && (
+        <ItemModal
+          item={selectedItem}
+          open={isModalOpen}
+          onClose={closeModal}
+          onToggleEquip={() => {
+            handleEquip(selectedItem.id, tab);
+            closeModal();
+          }}
+        />
+      )}
     </Wrapper>
   );
 }
