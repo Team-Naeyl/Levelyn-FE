@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { ItemBox } from '../ItemBox';
+import ItemBox from '../ItemBox';
 import ProgressBar from '../ProgressBar';
 
 export default function CombatModalContent() {
