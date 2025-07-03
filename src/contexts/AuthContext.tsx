@@ -1,7 +1,4 @@
-import { createContext, useState, useContext, useEffect, type PropsWithChildren } from 'react';
-import axios from 'axios';
-import { renewToken, signOut as performSignOut } from '../services/auth';
-import api from '../services/api';
+import { createContext, useState, useContext, type PropsWithChildren } from 'react';
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -14,33 +11,27 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // 토큰 관리는 api.ts에서 처리하고 AuthContext에서는 로그인 상태만 관리
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = (token: string) => {
-    setAccessToken(token);
+    console.log('로그인 함수 호출되었으나 개발 환경에서는 항상 로그인 된 상태로 관리함니다', token);
     setIsLoggedIn(true);
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
-  const clearAuthState = () => {
-    setAccessToken(null);
+  const logout = () => {
+    console.log('로그아웃 함수 호출되었으나 개발 환경에서는 항상 로그인 된 상태로 관리함니다');
     setIsLoggedIn(false);
-    delete api.defaults.headers.common['Authorization'];
   };
 
-  const logout = async () => {
-    try {
-      await performSignOut();
-    } catch (error) {
-      console.error('로그아웃 처리 중 오류가 발생했습니다.', error);
-    } finally {
-      clearAuthState();
-    }
+  const value = {
+    isLoggedIn,
+    accessToken: null,
+    login,
+    logout,
+    isLoading,
   };
-
-  const value = { isLoggedIn, accessToken, login, logout, isLoading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
