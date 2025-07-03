@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import Checkbox from './CheckBox';
 
-type CategoryType = '공부' | '운동' | '업무' | '생활' | '기타';
+type CategoryType = '일반' | '목표';
 
 interface TodoItemProps {
   id: string;
@@ -12,27 +12,14 @@ interface TodoItemProps {
   onCheck: (checked: boolean) => void;
 }
 
-// 카테고리별 파스텔 색상 정의(임시)
 const categoryColors = {
-  공부: {
-    background: '#F0FFE4', // 연한 민트 그린
-    border: '#4CAF50', // 그린
+  일반: {
+    background: '#FFFFFF',
+    border: '#1B1F24',
   },
-  운동: {
-    background: '#E0FFF5', // 연한 블루
-    border: '#2196F3', // 블루
-  },
-  업무: {
-    background: '#FFF3E0', // 연한 오렌지
-    border: '#FF9800', // 오렌지
-  },
-  생활: {
-    background: 'white', // 연한 핑크
-    border: 'black', // 핑크
-  },
-  기타: {
-    background: 'white', // 연한 핑크
-    border: 'black', // 핑크
+  목표: {
+    background: '#FFF9C4',
+    border: '#FFC107',
   },
 };
 

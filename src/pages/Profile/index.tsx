@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import ProgressBar from '../../components/common/ProgressBar';
 import Button from '../../components/common/Button';
 import Header from '../../components/common/Header';
+import { useAuth } from '../../contexts/AuthContext';
 
 const mockCharacter = {
   nickname: '콩콩잉',
@@ -18,6 +19,8 @@ const mockCharacter = {
 };
 
 export default function Profile() {
+  const { logout } = useAuth();
+
   return (
     <Container>
       <Header
@@ -58,7 +61,7 @@ export default function Profile() {
           color="error"
           size="small"
           fullWidth
-          onClick={() => {}}
+          onClick={logout}
         />
       </LogoutButtonSection>
     </Container>

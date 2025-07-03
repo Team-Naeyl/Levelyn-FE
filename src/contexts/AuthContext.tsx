@@ -18,16 +18,24 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      setAccessToken(token);
+      setIsLoggedIn(true);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
     setIsLoading(false);
   }, []);
 
   const login = (token: string) => {
+    localStorage.setItem('accessToken', token);
     setAccessToken(token);
     setIsLoggedIn(true);
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   };
 
   const clearAuthState = () => {
+    localStorage.removeItem('accessToken');
     setAccessToken(null);
     setIsLoggedIn(false);
     delete api.defaults.headers.common['Authorization'];

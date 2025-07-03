@@ -8,6 +8,7 @@ import { useAuth } from './contexts/AuthContext';
 import Profile from './pages/Profile';
 import TodoForm from './pages/TodoForm';
 import KakaoCallback from './pages/KakaoCallback';
+import ErrorPage from './pages/ErrorPage';
 
 const PrivateRoute = ({ children }: PropsWithChildren) => {
   const { isLoggedIn, isLoading } = useAuth();
@@ -33,7 +34,7 @@ const loggedInRouter = createBrowserRouter([
         <BottomNavigationLayout />
       </PrivateRoute>
     ),
-    errorElement: <div>오류!</div>,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: '/',

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import styled from '@emotion/styled';
 import mockImage from '../../assets/mockimge.png';
 import avatarImage from '../../assets/avatar.png';
@@ -11,11 +11,8 @@ const HEX_SIZE = 40;
 export const MAX_HEXAGONS = 8;
 
 export const CATEGORIES = {
-  공부: { color: '#F0FFE4', name: '공부' },
-  운동: { color: '#E0FFF5', name: '운동' },
-  업무: { color: '#FFF3E0', name: '업무' },
-  생활: { color: '#FFEBE9', name: '생활' },
-  기타: { color: '#EAEEF2', name: '기타' },
+  일반: { color: '#EAEEF2', name: '일반' },
+  목표: { color: '#FFF9C4', name: '목표' },
 } as const;
 
 export type CategoryKey = keyof typeof CATEGORIES;
@@ -73,51 +70,34 @@ const axialToPixel = (q: number, r: number, size: number): [number, number] => {
   return [x, y];
 };
 
-function usePrevious<T>(value: T) {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
-}
-
 export default function TileMap({ todos }: TileMapProps) {
-  const [mapSeed, setMapSeed] = useState(1);
-  const [completedTodoOffset, setCompletedTodoOffset] = useState(0);
-  const [taskCategories, setTaskCategories] = useState<{ [key: number]: CategoryKey }>({});
+  const totalCompleted = useMemo(() => (todos ? todos.filter((todo) => todo.checked).length : 0), [todos]);
 
-  const totalCompleted = useMemo(() => todos.filter((todo) => todo.checked).length, [todos]);
-  const completedStep = totalCompleted - completedTodoOffset;
-  const prevTodos = usePrevious(todos);
+  const currentCompletedOffset = useMemo(
+    () => Math.floor(totalCompleted / MAX_HEXAGONS) * MAX_HEXAGONS,
+    [totalCompleted]
+  );
+  const currentMapSeed = useMemo(() => Math.floor(totalCompleted / MAX_HEXAGONS) + 1, [totalCompleted]);
 
-  useEffect(() => {
-    if (!prevTodos) return;
+  const completedStep = totalCompleted - currentCompletedOffset;
 
-    const newlyCheckedTodo = todos.find((todo, i) => todo.checked && !prevTodos[i]?.checked);
-
-    if (newlyCheckedTodo) {
-      const currentStepForNewTodo = totalCompleted - completedTodoOffset;
-      setTaskCategories((prev) => ({
-        ...prev,
-        [currentStepForNewTodo]: newlyCheckedTodo.category,
-      }));
+  const taskCategories = useMemo(() => {
+    if (!todos) {
+      return {};
     }
-  }, [todos, prevTodos, totalCompleted, completedTodoOffset]);
+    const categories: { [key: number]: CategoryKey } = {};
+    const visibleCompletedTodos = todos.filter((todo) => todo.checked).slice(currentCompletedOffset);
 
-  useEffect(() => {
-    if (completedStep >= MAX_HEXAGONS) {
-      const timer = setTimeout(() => {
-        setMapSeed((prev) => prev + 1);
-        setCompletedTodoOffset((prev) => prev + MAX_HEXAGONS);
-        setTaskCategories({});
-      }, 1000);
+    visibleCompletedTodos.forEach((todo, index) => {
+      const step = index + 1;
+      categories[step] = todo.category;
+    });
 
-      return () => clearTimeout(timer);
-    }
-  }, [completedStep]);
+    return categories;
+  }, [todos, currentCompletedOffset]);
 
   const hexagonCluster = useMemo((): Hexagon[] => {
-    let currentSeed = mapSeed;
+    let currentSeed = currentMapSeed;
     const hexagons: Hexagon[] = [];
     const usedPositions = new Set<string>();
 
@@ -165,7 +145,7 @@ export default function TileMap({ todos }: TileMapProps) {
       lastHex = newHex;
     }
     return hexagons;
-  }, [mapSeed]);
+  }, [currentMapSeed]);
 
   const viewBox = useMemo(() => {
     if (hexagonCluster.length === 0) return `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`;
