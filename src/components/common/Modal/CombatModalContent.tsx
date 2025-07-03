@@ -1,14 +1,51 @@
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import { ItemBox } from '../ItemBox';
+import { keyframes, css } from '@emotion/react';
+import ItemBox from '../ItemBox';
 import ProgressBar from '../ProgressBar';
 
+import backgroundImage from '../../../assets/background.png';
+import avatarImage from '../../../assets/avatar.png';
+import mockImage from '../../../assets/mockimge.png';
+import skillImage from '../../../assets/skill.png';
+
 export default function CombatModalContent() {
+  const [showSkill, setShowSkill] = useState(false);
+
+  useEffect(() => {
+    const randomDelay = Math.random() * 1000 + 1000; // 1~2초 사이의 랜덤 딜레이
+    const timer = setInterval(() => {
+      setShowSkill(true);
+      setTimeout(() => setShowSkill(false), 500); // 0.5초간 스킬 표시
+    }, randomDelay);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <Wrapper>
       <TopSection>
-        <CharacterArea>캐릭터</CharacterArea>
-        <MonsterArea>몬스터</MonsterArea>
-        <SkillArea>스킬 효과</SkillArea>
+        <BackgroundImage />
+        <CharacterArea isAttacking={showSkill}>
+          <img
+            src={avatarImage}
+            alt="Character"
+          />
+        </CharacterArea>
+        <MonsterArea isHit={showSkill}>
+          <img
+            src={mockImage}
+            alt="Monster"
+          />
+        </MonsterArea>
+        {showSkill && (
+          <SkillArea>
+            <img
+              src={skillImage}
+              alt="Skill Effect"
+            />
+          </SkillArea>
+        )}
       </TopSection>
       <BottomSection>
         <SkillSlots>
@@ -65,53 +102,99 @@ const TopSection = styled.div`
   position: relative;
   width: 100%;
   height: 250px;
-  background-color: ${({ theme }) => theme.colors.gray[200]};
   border-bottom: 2px solid black;
+  background-color: #333;
 `;
 
-const CharacterArea = styled.div`
+const BackgroundImage = styled.div`
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(${backgroundImage});
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(80%) brightness(100%);
+  opacity: 0.9;
+  z-index: 0;
+`;
+
+const ImageContainerBase = styled.div`
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+`;
+
+const attackAnimation = keyframes`
+  50% {
+    transform: translateY(-50%) translateX(20px);
+  }
+`;
+
+const CharacterArea = styled(ImageContainerBase)<{ isAttacking?: boolean }>`
   width: 80px;
   height: 80px;
-  background-color: ${({ theme }) => theme.colors.error[300]};
-  border: 2px solid black;
   left: 40px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  ${({ isAttacking }) =>
+    isAttacking &&
+    css`
+      animation: ${attackAnimation} 0.5s ease-in-out;
+    `}
 `;
 
-const MonsterArea = styled.div`
-  position: absolute;
+const hitAnimation = keyframes`
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  25% { transform: translateY(-50%) translateX(-5px); }
+  50% { transform: translateY(-50%) translateX(5px); }
+  75% { transform: translateY(-50%) translateX(-5px); }
+`;
+
+const MonsterArea = styled(ImageContainerBase)<{ isHit?: boolean }>`
   width: 100px;
   height: 100px;
-  background-color: ${({ theme }) => theme.colors.secondary[300]};
-  border: 2px solid black;
   right: 40px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  ${({ isHit }) =>
+    isHit &&
+    css`
+      animation: ${hitAnimation} 0.3s linear;
+    `}
 `;
 
-const SkillArea = styled.div`
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  background-color: yellow;
-  border: 2px solid black;
+const skillAnimation = keyframes`
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+`;
+
+const SkillArea = styled(ImageContainerBase)`
+  width: 70px;
+  height: 70px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  animation: ${skillAnimation} 0.5s ease-in-out;
 `;
 
 const BottomSection = styled.div`
