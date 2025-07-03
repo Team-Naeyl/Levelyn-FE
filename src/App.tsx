@@ -4,8 +4,9 @@ import BottomNavigationLayout from './components/layout/BottomNavigation/BottomN
 import Home from './pages/home';
 import Login from './pages/login';
 import Profile from './pages/Profile';
-import TodoForm from './pages/TodoForm';
+import CreateTodo from './pages/CreateTodo';
 import KakaoCallback from './pages/KakaoCallback';
+import EditTodo from './pages/EditTodo';
 
 // import { type PropsWithChildren, useEffect } from 'react';
 // import { Navigate, Outlet } from 'react-router-dom';
@@ -36,8 +37,12 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '/todoform',
-    element: <TodoForm />,
+    path: '/todo/create',
+    element: <CreateTodo />,
+  },
+  {
+    path: '/todo/edit',
+    element: <EditTodo />,
   },
   {
     path: '/login',

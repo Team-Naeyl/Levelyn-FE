@@ -3,7 +3,12 @@ import styled from '@emotion/styled';
 import ItemBox from '../../components/common/ItemBox';
 import Header from '../../components/common/Header';
 import ItemModal from './.components/ItemModal';
-import api from '../../services/api';
+import {
+  getInventoryItems,
+  getInventorySkills,
+  updateEquippedSkills,
+  updateEquippedItems,
+} from '../../services/inventory';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 
 type InventoryTab = 'skill' | 'item';
@@ -47,18 +52,17 @@ export default function InventoryPage() {
       setError(null);
 
       try {
-        const [itemsRes, skillsRes] = await Promise.all([
-          api.get('/api/inventory/items'),
-          api.get('/api/inventory/skills'),
-        ]);
+        const itemsResult = await getInventoryItems();
+        const skillsResult = await getInventorySkills();
+
         const imageURL = 'https://picsum.photos/seed/item1/64';
 
-        const items: InventoryItem[] = itemsRes.data.results.map((item: InventoryItem) => ({
+        const items: InventoryItem[] = itemsResult.map((item: InventoryItem) => ({
           ...item,
           imageURL,
         }));
 
-        const skills: InventoryItem[] = skillsRes.data.userSkills.map((skill: InventoryItem) => ({
+        const skills: InventoryItem[] = skillsResult.map((skill: InventoryItem) => ({
           ...skill,
           imageURL,
         }));
@@ -93,9 +97,7 @@ export default function InventoryPage() {
           return;
         }
 
-        await api.put('/api/inventory/skills/slot', {
-          skillIds: newEquipped.map((s) => s.id),
-        });
+        await updateEquippedSkills(newEquipped.map((s) => s.id));
 
         const newUnequipped = [...unequippedSkills, ...equippedSkills.filter((s) => !newEquipped.includes(s))].filter(
           (s) => !newEquipped.some((e) => e.id === s.id)
@@ -104,8 +106,7 @@ export default function InventoryPage() {
         setEquippedSkills(newEquipped);
         setUnequippedSkills(newUnequipped);
       } else {
-        const result = await api.patch('/api/inventory/items/slot', { itemIds: [id] });
-        console.log(result);
+        await updateEquippedItems([id]);
         setEquippedItems((prev) =>
           prev.some((i) => i.id === id)
             ? prev.filter((i) => i.id !== id)

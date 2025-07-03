@@ -1,35 +1,48 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import Header from '../../components/common/Header';
 import TextField from '../../components/common/TextField';
 import Button from '../../components/common/Button';
 import { Icon } from '@iconify/react';
 import addIcon from '@iconify-icons/material-symbols/add';
+import Dropdown from '../../components/common/Dropdown';
 
-import api from '../../services/api';
+import { updateTodo, deleteTodo } from '../../services/todo';
+import type { PostTodoQuery, EditTodoDTO } from '../../types/todo.types';
 
 type PeriodType = '매주' | '2주' | '한달';
 
-interface CreateTodoPayload {
-  description?: string;
-  date: Date;
-  period?: {
-    unit: 'years' | 'months' | 'weeks' | 'days';
-    amount: number;
-  };
-}
-
-export default function TodoForm() {
+export default function EditTodo() {
+  const location = useLocation();
   const navigate = useNavigate();
 
+  const todo = location.state?.todo as EditTodoDTO | undefined;
   const descriptionRef = useRef<HTMLInputElement>(null);
-  const [period, setPeriod] = useState<PeriodType | undefined>(undefined);
+  const [period, setPeriod] = useState<PeriodType | undefined>();
   const periodOptions: PeriodType[] = ['매주', '2주', '한달'];
+  const [isSub, setIsSub] = useState<boolean>(!!todo?.category);
+  const subOptions = [
+    { label: '일반', value: false },
+    { label: '목표', value: true },
+  ];
 
-  // TODO: 메인페이지에서 id를 받아오는 로직 추가 후 삭제 구현
-  const handleDelete = () => {
-    console.log('할 일 삭제');
+  const getKstDateString = (): string => {
+    const now = new Date();
+    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().slice(0, 10);
+  };
+
+  const handleDelete = async () => {
+    if (!todo) return;
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+    try {
+      await deleteTodo(parseInt(todo.id));
+      navigate(-1);
+    } catch (err) {
+      alert('삭제 실패');
+      console.error('할 일 삭제 실패:', err);
+    }
   };
 
   const handlePeriod = (option: PeriodType) => {
@@ -38,11 +51,17 @@ export default function TodoForm() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (!todo) return;
 
     const description = descriptionRef.current?.value.trim();
-    const payload: CreateTodoPayload = {
+    if (!description) {
+      alert('할 일의 내용을 입력해주세요.');
+      return;
+    }
+    const payload: PostTodoQuery = {
       description,
-      date: new Date(),
+      date: getKstDateString(),
+      isSub,
     };
 
     if (period) {
@@ -50,12 +69,12 @@ export default function TodoForm() {
       const unit = period === '한달' ? 'months' : 'weeks';
       payload.period = { unit, amount };
     }
-
     try {
-      await api.post('/api/to-do', payload);
+      await updateTodo(parseInt(todo.id), payload);
       navigate(-1);
     } catch (err) {
-      console.error('할 일 등록 실패:', err);
+      alert('수정 실패');
+      console.error('할 일 수정 실패:', err);
     }
   };
 
@@ -63,7 +82,7 @@ export default function TodoForm() {
     <>
       <Header
         isMain={false}
-        title={'할 일'}
+        title={'할 일 수정'}
         onBack={() => navigate(-1)}
         onDelete={handleDelete}
       />
@@ -71,6 +90,13 @@ export default function TodoForm() {
         <TextField
           placeholder="할 일을 입력해주세요"
           ref={descriptionRef}
+          defaultValue={todo?.text || ''}
+        />
+        <Dropdown
+          options={subOptions}
+          fullWidth={true}
+          placeholder="일반"
+          onChange={(value) => setIsSub(Boolean(value))}
         />
         <ButtonContainer>
           {periodOptions.map((option) => (
@@ -85,7 +111,7 @@ export default function TodoForm() {
         </ButtonContainer>
         <Button
           type="submit"
-          label="할일 추가"
+          label="수정하기"
           onClick={handleSubmit}
           fullWidth
           color="primary"

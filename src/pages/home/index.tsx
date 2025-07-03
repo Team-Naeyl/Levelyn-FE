@@ -107,7 +107,7 @@ export default function Home() {
   };
 
   const handleAddTodo = () => {
-    navigate('/todoform');
+    navigate('/createtodo');
   };
 
   const handleCheckTodo = async (id: string, checked: boolean) => {
@@ -168,11 +168,14 @@ export default function Home() {
           {!isLoading &&
             !error &&
             todos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                {...todo}
-                onCheck={(checked) => handleCheckTodo(todo.id, checked)}
-              />
+              <>
+                <TodoItem
+                  key={todo.id}
+                  {...todo}
+                  onCheck={(checked) => handleCheckTodo(todo.id, checked)}
+                />
+                <div onClick={() => navigate('/todo/edit', { state: { todo } })}>임시 수정</div>
+              </>
             ))}
           {!isLoading && !error && todos.length === 0 && <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>}
         </TodoList>

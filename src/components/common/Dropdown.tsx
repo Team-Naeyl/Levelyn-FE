@@ -11,9 +11,9 @@ interface DropdownProps {
   loading?: boolean;
   options: {
     label: string;
-    value: string | number;
+    value: unknown;
   }[];
-  onChange?: (value: string | number) => void;
+  onChange?: (value: unknown) => void;
 }
 
 export default function Dropdown({
@@ -24,9 +24,9 @@ export default function Dropdown({
   onChange,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<{ label: string; value: string | number } | undefined>(undefined);
+  const [selected, setSelected] = useState<{ label: string; value: unknown } | undefined>(undefined);
 
-  const handleSelect = (option: { label: string; value: string | number }) => {
+  const handleSelect = (option: { label: string; value: unknown }) => {
     setSelected(option);
     setIsOpen(false);
     onChange?.(option.value);
@@ -48,7 +48,7 @@ export default function Dropdown({
         <List>
           {options.map((option) => (
             <Item
-              key={option.value}
+              key={'label' + `${option.value}`}
               onClick={() => handleSelect(option)}
             >
               {option.label}
