@@ -9,7 +9,7 @@ import addIcon from '@iconify-icons/material-symbols/add';
 import Dropdown from '../../components/common/Dropdown';
 
 import { updateTodo, deleteTodo } from '../../services/todo';
-import type { PostTodoQuery, EditTodoDTO } from '../../types/todo.types';
+import type { PatchTodoQuery, EditTodoDTO } from '../../types/todo.types';
 
 type PeriodType = '매주' | '2주' | '한달';
 
@@ -21,12 +21,11 @@ export default function EditTodo() {
   const descriptionRef = useRef<HTMLInputElement>(null);
   const [period, setPeriod] = useState<PeriodType | undefined>();
   const periodOptions: PeriodType[] = ['매주', '2주', '한달'];
-  const [isSub, setIsSub] = useState<boolean>(!!todo?.category);
+  const [isSub, setIsSub] = useState<boolean>(todo?.category === '목표' ? true : false);
   const subOptions = [
     { label: '일반', value: false },
     { label: '목표', value: true },
   ];
-
   const getKstDateString = (): string => {
     const now = new Date();
     const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
@@ -58,7 +57,7 @@ export default function EditTodo() {
       alert('할 일의 내용을 입력해주세요.');
       return;
     }
-    const payload: PostTodoQuery = {
+    const payload: PatchTodoQuery = {
       description,
       date: getKstDateString(),
       isSub,

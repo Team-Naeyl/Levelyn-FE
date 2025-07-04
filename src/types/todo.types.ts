@@ -34,6 +34,16 @@ export interface PostTodoQuery {
   };
 }
 
+export interface PatchTodoQuery {
+  description?: string;
+  date?: string;
+  isSub?: boolean;
+  period?: {
+    unit: 'years' | 'months' | 'weeks' | 'days';
+    amount: number;
+  };
+}
+
 export interface EditTodoDTO {
   id: string;
   text: string;
