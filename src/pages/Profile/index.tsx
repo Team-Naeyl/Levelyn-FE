@@ -1,25 +1,72 @@
+import { useState, useEffect, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
 import ProgressBar from '../../components/common/ProgressBar';
 import Button from '../../components/common/Button';
 import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
-
-const mockCharacter = {
-  nickname: '콩콩잉',
-  level: 3,
-  exp: 70,
-  maxExp: 100,
-  stats: [
-    { name: 'str', value: 2 },
-    { name: 'int', value: 3 },
-    { name: 'wil', value: 4 },
-  ],
-  appliedEffects: '적용된 추가 효과',
-};
+import ItemBox from '../../components/common/ItemBox';
+import { getMyPageData } from '../../services/myPage';
+import type { MyPageData } from '../../types/myPage.types';
+import avatarImage from '../../assets/avatar.png';
 
 export default function Profile() {
   const { logout } = useAuth();
+  const [data, setData] = useState<MyPageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const myPageData = await getMyPageData();
+        setData(myPageData);
+      } catch (err) {
+        setError('프로필 정보를 불러오는데 실패했습니다.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const stats = useMemo(() => {
+    if (!data) return [];
+    return [
+      { name: 'atk', value: data.character.state.attack },
+      { name: 'wil', value: data.character.state.will },
+    ];
+  }, [data]);
+
+  const equippedItems = useMemo(() => {
+    if (!data) return [];
+    return data.character.itemsSlot.filter((item) => item.equipped);
+  }, [data]);
+
+  if (isLoading) {
+    return (
+      <Container>
+        <Header
+          isMain={false}
+          title="프로필"
+        />
+        <LoadingContainer>로딩 중...</LoadingContainer>
+      </Container>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <Container>
+        <Header
+          isMain={false}
+          title="프로필"
+        />
+        <ErrorContainer>{error || '데이터를 불러올 수 없습니다.'}</ErrorContainer>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -28,29 +75,43 @@ export default function Profile() {
         title="프로필"
       />
       <CharacterSection>
-        <ImagePlaceholder />
+        <ImagePlaceholder src={avatarImage} />
         <InfoContainer>
           <NameLevelRow>
-            <span>{mockCharacter.nickname}</span>
-            <span>Lv. {mockCharacter.level}</span>
+            <span>{data.profile.name}</span>
+            <span>Lv. {data.character.state.level}</span>
           </NameLevelRow>
           <ProgressBar
             variant="exp"
             label="EXP"
-            total={mockCharacter.maxExp}
-            current={mockCharacter.exp}
+            total={100}
+            current={data.character.state.exp}
             width="100%"
-            height={10}
+            height={12}
           />
           <StatsContainer>
-            {mockCharacter.stats.map((stat, index) => (
+            {stats.map((stat, index) => (
               <StatRow key={index}>
                 <StatLabel>{stat.name}</StatLabel>
                 <StatValue>{stat.value}</StatValue>
               </StatRow>
             ))}
           </StatsContainer>
-          <Effects>{mockCharacter.appliedEffects}</Effects>
+          <SectionTitle>장착한 아이템</SectionTitle>
+          <EquippedItemsSection>
+            {equippedItems.slice(0, 6).map((item) => (
+              <ItemBox
+                key={item.id}
+                imageURL={`https://picsum.photos/seed/item${item.id}/64`}
+              />
+            ))}
+            {Array.from({ length: Math.max(0, 6 - equippedItems.length) }).map((_, index) => (
+              <ItemBox
+                key={`placeholder-${index}`}
+                imageURL=""
+              />
+            ))}
+          </EquippedItemsSection>
         </InfoContainer>
       </CharacterSection>
       <StatsSection>통계</StatsSection>
@@ -89,12 +150,13 @@ const CharacterSection = styled.div`
   `}
 `;
 
-const ImagePlaceholder = styled.div`
+const ImagePlaceholder = styled.img`
   width: 152px;
-  height: 224px;
-  background-color: #f0f0f0;
+  height: 100%;
+  background-color: transparent;
   border-radius: 4px;
   flex-shrink: 0;
+  object-fit: cover;
 `;
 
 const InfoContainer = styled.div`
@@ -133,13 +195,6 @@ const StatValue = styled.span`
   margin-left: auto;
 `;
 
-const Effects = styled.div`
-  ${({ theme }) => css`
-    ${theme.textStyles.L_SB_12};
-    color: ${theme.colors.black};
-  `}
-`;
-
 const StatsSection = styled.div`
   ${({ theme }) => css`
     width: 100%;
@@ -157,4 +212,32 @@ const LogoutButtonSection = styled.div`
   cursor: pointer;
   width: 100%;
   margin-top: auto;
+`;
+
+const SectionTitle = styled.h3`
+  ${({ theme }) => theme.textStyles.H_B_16};
+  color: ${({ theme }) => theme.colors.black};
+
+  margin-top: 16px;
+`;
+
+const EquippedItemsSection = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: ${({ theme }) => theme.colors.error[500]};
 `;

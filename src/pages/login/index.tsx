@@ -1,9 +1,19 @@
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Button from '../../components/common/Button';
-import splashImage from '../../assets/splash.png';
 import { css } from '@emotion/react';
+import { getImageUrl } from '../../services/appwrite';
 
 export default function Login() {
+  // 스플래시 이미지 URL
+  const [splashImageUrl, setSplashImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = getImageUrl('splash');
+    console.log('Splash Image URL from Appwrite:', url);
+    setSplashImageUrl(url);
+  }, []);
+
   const handleLogin = () => {
     const KAKAO_REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
@@ -19,7 +29,7 @@ export default function Login() {
   };
 
   return (
-    <Container>
+    <Container imageUrl={splashImageUrl}>
       <Title>Levelyn</Title>
       <ButtonContainer>
         <Button
@@ -33,8 +43,8 @@ export default function Login() {
   );
 }
 
-const Container = styled.div`
-  ${({ theme }) => css`
+const Container = styled.div<{ imageUrl: string | null }>`
+  ${({ theme, imageUrl }) => css`
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -43,21 +53,22 @@ const Container = styled.div`
     position: relative;
     overflow: hidden;
     background-color: ${theme.colors.white};
-  `}
 
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 40%;
-    background-image: url(${splashImage});
-    background-size: cover;
-    background-position: center bottom;
-    background-repeat: no-repeat;
-    filter: grayscale(100%);
-  }
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40%;
+      background-image: ${imageUrl ? `url(${imageUrl})` : 'none'};
+      background-size: cover;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+      filter: grayscale(100%);
+      transition: background-image 0.3s ease-in-out;
+    }
+  `}
 `;
 
 const Title = styled.h1`

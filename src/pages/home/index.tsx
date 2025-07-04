@@ -200,13 +200,13 @@ const UserInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0 8px;
 `;
 
 const NameLevelRow = styled.div`
   display: flex;
   justify-content: space-between;
   width: 100%;
-  padding-left: 9px;
 `;
 
 const Level = styled.span`
