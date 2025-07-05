@@ -12,6 +12,7 @@ import { getCurrentGoal } from '../../services/goal';
 import type { TodoDTO } from '../../types/todo.types';
 import type { GoalDTO } from '../../types/goal.types';
 import { useAuth } from '../../contexts/AuthContext';
+import { longPressHandler } from '../../utils/LongPressHandler';
 
 type CategoryType = '일반' | '목표';
 
@@ -107,7 +108,7 @@ export default function Home() {
   };
 
   const handleAddTodo = () => {
-    navigate('/todoform');
+    navigate('/todo/create');
   };
 
   const handleCheckTodo = async (id: string, checked: boolean) => {
@@ -129,6 +130,11 @@ export default function Home() {
       setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked: !checked } : todo)));
       setError('Todo 상태 변경에 실패했습니다.');
     }
+  };
+
+  // 할 일을 길게 누를 시 edit으로 연결(longPressHandler 유틸 함수 사용)
+  const handleTodoLongPress = (todo?: TodoItemData) => {
+    navigate('/todo/edit', { state: { todo } });
   };
 
   return (
@@ -168,11 +174,15 @@ export default function Home() {
           {!isLoading &&
             !error &&
             todos.map((todo) => (
-              <TodoItem
+              <div
                 key={todo.id}
-                {...todo}
-                onCheck={(checked) => handleCheckTodo(todo.id, checked)}
-              />
+                {...longPressHandler(handleTodoLongPress, todo, 800)}
+              >
+                <TodoItem
+                  {...todo}
+                  onCheck={(checked) => handleCheckTodo(todo.id, checked)}
+                />
+              </div>
             ))}
           {!isLoading && !error && todos.length === 0 && <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>}
         </TodoList>

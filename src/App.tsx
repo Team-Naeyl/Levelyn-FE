@@ -6,8 +6,9 @@ import Home from './pages/home';
 import Login from './pages/login';
 import { useAuth } from './contexts/AuthContext';
 import Profile from './pages/Profile';
-import TodoForm from './pages/TodoForm';
+import CreateTodo from './pages/CreateTodo';
 import KakaoCallback from './pages/KakaoCallback';
+import EditTodo from './pages/EditTodo';
 import ErrorPage from './pages/ErrorPage';
 
 const PrivateRoute = ({ children }: PropsWithChildren) => {
@@ -51,16 +52,12 @@ const loggedInRouter = createBrowserRouter([
     ],
   },
   {
-    path: '/todoform',
-    element: (
-      <PrivateRoute>
-        <TodoForm />
-      </PrivateRoute>
-    ),
+    path: '/todo/create',
+    element: <CreateTodo />,
   },
   {
-    path: '*',
-    element: <Home />,
+    path: '/todo/edit',
+    element: <EditTodo />,
   },
 ]);
 
