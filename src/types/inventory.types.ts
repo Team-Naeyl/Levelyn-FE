@@ -4,6 +4,7 @@ export interface InventoryItem {
   description: string;
   imageURL: string;
   equipped: boolean;
+  type: { id: number; value: string };
 }
 
 export interface GetInventoryItemsResponse {
