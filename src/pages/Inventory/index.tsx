@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import styled from '@emotion/styled';
-import ItemBox from '../../components/common/ItemBox';
 import Header from '../../components/common/Header';
 import ItemModal from './.components/ItemModal';
+import InventoryGrid from './.components/InventoryGrid';
+import EquippedAvatar from './.components/EquippedAvatar';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 import {
   useInventoryItems,
@@ -11,7 +12,6 @@ import {
   useUpdateSkillsMutation,
 } from '../../hooks/useInventory';
 import type { InventoryItem } from '../../types/inventory.types';
-import avatar from '../../assets/avatar.png';
 
 type InventoryTab = 'skill' | 'item';
 
@@ -72,11 +72,24 @@ export default function InventoryPage() {
     setIsModalOpen(false);
   };
 
-  const { onTouchStart, onTouchEnd, onTouchCancel, isDragging } = useDragAndDrop<InventoryItem>();
   const handleDrop = async (item: InventoryItem) => {
     if (updateSkillsMutation.isPending || updateItemsMutation.isPending) return;
     await handleEquip(item.id, tab);
   };
+
+  const {
+    onTouchStart,
+    onTouchMove,
+    onTouchEnd,
+    onTouchCancel,
+    isDragging,
+    draggedItem,
+    dragPosition,
+    setDropZoneRef,
+  } = useDragAndDrop<InventoryItem>(handleDrop);
+
+  const equippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
+  const unequippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
 
   const equippedData = {
     skill: skills.filter((s) => s.equipped),
@@ -91,38 +104,14 @@ export default function InventoryPage() {
   const error = (tab === 'item' ? itemsError : skillsError) as Error | null;
   const isActionLoading = updateSkillsMutation.isPending || updateItemsMutation.isPending;
 
-  const bottomAreaRef = useRef<HTMLDivElement>(null);
-  const [pendingScroll, setPendingScroll] = useState(false);
-  const bottomSkillAreaRef = useRef<HTMLDivElement>(null);
-  const [pendingSkillScroll, setPendingSkillScroll] = useState(false);
-
   const handleTabClick = (type: number) => {
     setItemTabType(type);
-    setPendingScroll(true);
   };
 
-  const handleEmptyBoxClick = (type: number) => {
-    setItemTabType(type);
-    setPendingScroll(true);
+  const handleBoxClick = (item: InventoryItem) => {
+    if (item.type) setItemTabType(item.type.id);
+    openModal(item);
   };
-
-  const handleSkillEmptyBoxClick = () => {
-    setPendingSkillScroll(true);
-  };
-
-  useEffect(() => {
-    if (pendingScroll && bottomAreaRef.current) {
-      bottomAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setPendingScroll(false);
-    }
-  }, [itemTabType, pendingScroll]);
-
-  useEffect(() => {
-    if (pendingSkillScroll && bottomSkillAreaRef.current) {
-      bottomSkillAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setPendingSkillScroll(false);
-    }
-  }, [pendingSkillScroll]);
 
   return (
     <Wrapper>
@@ -157,31 +146,16 @@ export default function InventoryPage() {
         <>
           {tab === 'item' && (
             <>
-              <ItemArea>
-                <AvatarCol>
-                  <AvatarImg
-                    src={avatar}
-                    alt="아바타"
-                  />
-                </AvatarCol>
-                <EquippedCol>
-                  {ITEM_TYPES.map((t) => (
-                    <EquippedRow key={t.type}>
-                      <TypeLabel>{t.label}</TypeLabel>
-                      {equippedByType(t.type) ? (
-                        <EquippedItemBox
-                          key={equippedByType(t.type)!.id}
-                          imageURL={equippedByType(t.type)!.imageURL}
-                          onClick={() => openModal(equippedByType(t.type)!)}
-                        />
-                      ) : (
-                        <EmptyBox onClick={() => handleEmptyBoxClick(t.type)}>+</EmptyBox>
-                      )}
-                    </EquippedRow>
-                  ))}
-                </EquippedCol>
-              </ItemArea>
-              <BottomArea ref={bottomAreaRef}>
+              <EquippedAvatar
+                slots={ITEM_TYPES.map((t) => ({
+                  label: t.label,
+                  item: equippedByType(t.type)
+                    ? { id: equippedByType(t.type)!.id, imageURL: equippedByType(t.type)!.imageURL }
+                    : null,
+                  onClick: () => openModal(equippedByType(t.type)!),
+                }))}
+              />
+              <EquipArea>
                 <TypeTabRow>
                   {ITEM_TYPES.map((t) => (
                     <TypeTabButton
@@ -193,54 +167,47 @@ export default function InventoryPage() {
                     </TypeTabButton>
                   ))}
                 </TypeTabRow>
-                <SectionTitle>장비 중인 아이템</SectionTitle>
-                {equippedByType(itemTabType) ? null : <CenterText>장착된 아이템이 없습니다.</CenterText>}
-                <Grid
-                  onTouchEnd={onTouchEnd(handleDrop)}
-                  onTouchCancel={onTouchCancel}
-                  style={{ touchAction: 'none' }}
-                >
-                  {equippedByType(itemTabType) && (
-                    <ItemBox
-                      key={equippedByType(itemTabType)!.id}
-                      imageURL={equippedByType(itemTabType)!.imageURL}
-                      equipped={true}
-                      onClick={() => openModal(equippedByType(itemTabType)!)}
-                      onTouchStart={onTouchStart(equippedByType(itemTabType)!)}
-                      onTouchEnd={onTouchEnd(handleDrop)}
-                      onTouchCancel={onTouchCancel}
-                      style={{
-                        opacity: isDragging ? 0.6 : 1,
-                        touchAction: 'none',
-                        cursor: isDragging ? 'grabbing' : 'pointer',
-                      }}
+                <div ref={unequippedDnD.setDropZoneRef}>
+                  <SectionTitle>장비 중인 아이템</SectionTitle>
+                  {equippedByType(itemTabType) ? (
+                    <InventoryGrid
+                      data={equippedByType(itemTabType) ? [equippedByType(itemTabType)!] : []}
+                      isEquipped={true}
+                      isDragging={equippedDnD.isDragging}
+                      onItemClick={openModal}
+                      onTouchStart={equippedDnD.onTouchStart}
+                      onTouchMove={equippedDnD.onTouchMove}
+                      onTouchEnd={equippedDnD.onTouchEnd}
+                      onTouchCancel={equippedDnD.onTouchCancel}
                     />
+                  ) : (
+                    <CenterText>장착된 아이템이 없습니다.</CenterText>
                   )}
-                </Grid>
+                </div>
                 <Divider />
-                {unequippedByType(itemTabType).length === 0 && <CenterText>장착 가능한 아이템이 없습니다.</CenterText>}
-                <Grid
-                  onTouchEnd={onTouchEnd(handleDrop)}
-                  onTouchCancel={onTouchCancel}
-                  style={{ touchAction: 'none' }}
-                >
-                  {unequippedByType(itemTabType).map((el) => (
-                    <ItemBox
-                      key={el.id}
-                      imageURL={el.imageURL}
-                      onClick={() => openModal(el)}
-                      onTouchStart={onTouchStart(el)}
-                      onTouchEnd={onTouchEnd(handleDrop)}
-                      onTouchCancel={onTouchCancel}
-                      style={{
-                        opacity: isDragging ? 0.6 : 1,
-                        touchAction: 'none',
-                        cursor: isDragging ? 'grabbing' : 'pointer',
-                      }}
-                    />
-                  ))}
-                </Grid>
-              </BottomArea>
+                <div ref={equippedDnD.setDropZoneRef}>
+                  {unequippedByType(itemTabType).length === 0 && (
+                    <CenterText>장착 가능한 아이템이 없습니다.</CenterText>
+                  )}
+                  <InventoryGrid
+                    data={unequippedByType(itemTabType)}
+                    isDragging={unequippedDnD.isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={unequippedDnD.onTouchStart}
+                    onTouchMove={unequippedDnD.onTouchMove}
+                    onTouchEnd={unequippedDnD.onTouchEnd}
+                    onTouchCancel={unequippedDnD.onTouchCancel}
+                  />
+                </div>
+              </EquipArea>
+              {isDragging && draggedItem && dragPosition && (
+                <DragPreview
+                  style={{
+                    left: dragPosition.x,
+                    top: dragPosition.y,
+                  }}
+                />
+              )}
               {isActionLoading && (
                 <Overlay>
                   <Spinner />
@@ -248,96 +215,57 @@ export default function InventoryPage() {
               )}
             </>
           )}
-
           {tab === 'skill' && (
-            <MainArea>
-              <ItemArea>
-                <AvatarCol>
-                  <AvatarImg
-                    src={avatar}
-                    alt="아바타"
+            <>
+              <EquippedAvatar
+                slots={[0, 1, 2].map((idx) => {
+                  const equippedSkill = equippedData.skill[idx];
+                  return {
+                    label: `스킬 ${idx + 1}`,
+                    item: equippedSkill ? { id: equippedSkill.id, imageURL: equippedSkill.imageURL } : null,
+                    onClick: () => handleBoxClick(equippedSkill),
+                  };
+                })}
+              />
+              <EquipArea>
+                <div ref={unequippedDnD.setDropZoneRef}>
+                  <SectionTitle>장착 중인 스킬</SectionTitle>
+                  {equippedData.skill.length === 0 && <CenterText>장착된 스킬이 없습니다.</CenterText>}
+                  <InventoryGrid
+                    data={equippedData.skill}
+                    isEquipped={true}
+                    isDragging={isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={equippedDnD.onTouchStart}
+                    onTouchMove={equippedDnD.onTouchMove}
+                    onTouchEnd={equippedDnD.onTouchEnd}
+                    onTouchCancel={equippedDnD.onTouchCancel}
                   />
-                </AvatarCol>
-                <EquippedCol>
-                  {[0, 1, 2].map((idx) => {
-                    const equippedSkill = equippedData.skill[idx];
-                    return (
-                      <EquippedRow key={idx}>
-                        <TypeLabel>스킬 {idx + 1}</TypeLabel>
-                        {equippedSkill ? (
-                          <EquippedItemBox
-                            key={equippedSkill.id}
-                            imageURL={equippedSkill.imageURL}
-                            onClick={() => openModal(equippedSkill)}
-                          />
-                        ) : (
-                          <EmptyBox onClick={handleSkillEmptyBoxClick}>+</EmptyBox>
-                        )}
-                      </EquippedRow>
-                    );
-                  })}
-                </EquippedCol>
-              </ItemArea>
-              <BottomArea ref={bottomSkillAreaRef}>
-                <SectionTitle>장착 중인 스킬</SectionTitle>
-                {equippedData.skill.length === 0 && <CenterText>장착된 스킬이 없습니다.</CenterText>}
-                <Grid
-                  onTouchEnd={onTouchEnd(handleDrop)}
-                  onTouchCancel={onTouchCancel}
-                  style={{ touchAction: 'none' }}
-                >
-                  {equippedData.skill.map((el) => (
-                    <ItemBox
-                      key={el.id}
-                      imageURL={el.imageURL}
-                      equipped
-                      onClick={() => openModal(el)}
-                      onTouchStart={onTouchStart(el)}
-                      onTouchEnd={onTouchEnd(handleDrop)}
-                      onTouchCancel={onTouchCancel}
-                      style={{
-                        opacity: isDragging ? 0.6 : 1,
-                        touchAction: 'none',
-                        cursor: isDragging ? 'grabbing' : 'pointer',
-                      }}
-                    />
-                  ))}
-                </Grid>
+                </div>
                 <Divider />
-                {unequippedData.skill.length === 0 && <CenterText>장착 가능한 스킬이 없습니다.</CenterText>}
-                <Grid
-                  onTouchEnd={onTouchEnd(handleDrop)}
-                  onTouchCancel={onTouchCancel}
-                  style={{ touchAction: 'none' }}
-                >
-                  {unequippedData.skill.map((el) => (
-                    <ItemBox
-                      key={el.id}
-                      imageURL={el.imageURL}
-                      equipped={false}
-                      onClick={() => openModal(el)}
-                      onTouchStart={onTouchStart(el)}
-                      onTouchEnd={onTouchEnd(handleDrop)}
-                      onTouchCancel={onTouchCancel}
-                      style={{
-                        opacity: isDragging ? 0.6 : 1,
-                        touchAction: 'none',
-                        cursor: isDragging ? 'grabbing' : 'pointer',
-                      }}
-                    />
-                  ))}
-                </Grid>
-              </BottomArea>
+                <div ref={equippedDnD.setDropZoneRef}>
+                  {unequippedData.skill.length === 0 && <CenterText>장착 가능한 스킬이 없습니다.</CenterText>}
+                  <InventoryGrid
+                    data={unequippedData.skill}
+                    isEquipped={false}
+                    isDragging={isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={unequippedDnD.onTouchStart}
+                    onTouchMove={unequippedDnD.onTouchMove}
+                    onTouchEnd={unequippedDnD.onTouchEnd}
+                    onTouchCancel={unequippedDnD.onTouchCancel}
+                  />
+                </div>
+              </EquipArea>
               {isActionLoading && (
                 <Overlay>
                   <Spinner />
                 </Overlay>
               )}
-            </MainArea>
+            </>
           )}
         </>
       )}
-
       {selectedItem && (
         <ItemModal
           item={selectedItem}
@@ -353,69 +281,66 @@ export default function InventoryPage() {
   );
 }
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-width: 320px;
-`;
-
-const Menu = styled.header`
-  text-align: center;
-`;
-
-const TabSelector = styled.div`
-  display: flex;
-  justify-content: center;
-  border: 1px solid ${({ theme }) => theme.colors.black};
-`;
-
-const TabButton = styled.button<{ selected: boolean }>`
+const BaseButton = styled.button`
   width: 100%;
-  padding: 8px;
-  ${({ theme }) => theme.textStyles.B_R_14};
   cursor: pointer;
+  border: none;
+  ${({ theme }) => theme.textStyles.T_SB_16};
   transition:
-    background-color 0.2s ease,
+    background-color 0.2s,
     opacity 0.2s;
+`;
+
+const TabButton = styled(BaseButton)<{ selected?: boolean }>`
+  padding: 8px;
   border-right: 1px solid ${({ theme }) => theme.colors.black};
+  background-color: ${({ selected, theme }) => (selected ? theme.colors.gray[100] : 'transparent')};
   &:last-of-type {
     border-right: none;
   }
-
-  background-color: ${({ selected, theme }) => (selected ? theme.colors.gray[100] : 'transparent')};
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
 `;
 
-const MainArea = styled.main`
-  min-height: 300px;
+const TypeTabButton = styled(BaseButton)<{ active: boolean }>`
+  padding: 6px 6px;
+  border-radius: 2px;
+  background: ${({ active, theme }) => (active ? theme.colors.primary[500] : 'transparent')};
+  color: ${({ active, theme }) => (active ? theme.colors.white : theme.colors.gray[500])};
 `;
 
-const Grid = styled.div`
-  display: grid;
-  padding: 20px;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  touch-action: none;
+const BaseLabel = styled.div`
+  ${({ theme }) => theme.textStyles.T_SB_16};
 `;
 
-const Divider = styled.hr`
-  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+const SectionTitle = styled(BaseLabel)`
+  padding: 0 8px;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
-const CenterText = styled.div`
+const EquipArea = styled.div`
+  width: 320px;
+  max-height: 306px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+`;
+
+const CenterText = styled(BaseLabel)`
+  height: 110px;
   width: 100%;
   text-align: center;
   padding: 40px 0;
   color: ${({ theme }) => theme.colors.gray[500]};
-  ${({ theme }) => theme.textStyles.B_R_16};
 `;
 
-const ErrorText = styled.div`
+const ErrorText = styled(BaseLabel)`
   width: 100%;
   text-align: center;
   padding: 40px 0;
   color: ${({ theme }) => theme.colors.error[700]};
   font-weight: bold;
-  ${({ theme }) => theme.textStyles.B_R_16};
 `;
 
 const Overlay = styled.div`
@@ -435,10 +360,9 @@ const Spinner = styled.div`
   width: 48px;
   height: 48px;
   border: 5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-top: 5px solid ${({ theme }) => theme.colors.primary || '#3498db'};
+  border-top: 5px solid ${({ theme }) => theme.colors.primary[400]};
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-
   @keyframes spin {
     to {
       transform: rotate(360deg);
@@ -446,69 +370,26 @@ const Spinner = styled.div`
   }
 `;
 
-const SectionTitle = styled.div`
-  ${({ theme }) => theme.textStyles.T_SB_16};
-  margin: 12px 0 0 12px;
-  color: ${({ theme }) => theme.colors.gray[700]};
-`;
-
-const ItemArea = styled.div`
-  height: 400px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-`;
-
-const AvatarCol = styled.div`
-  min-width: 160px;
-`;
-
-const AvatarImg = styled.img`
-  width: 160px;
-  height: 240px;
-  object-fit: cover;
-`;
-
-const EquippedItemBox = styled(ItemBox)`
-  width: 48px;
-  height: 48px;
-`;
-
-const EquippedCol = styled.div`
+const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: end;
-  gap: 12px;
-`;
-
-const EquippedRow = styled.div`
-  display: flex;
   align-items: center;
-  gap: 10px;
+  min-width: 320px;
 `;
 
-const TypeLabel = styled.div`
-  color: ${({ theme }) => theme.colors.gray[500]};
-  ${({ theme }) => theme.textStyles.T_SB_16};
+const Menu = styled.header`
+  text-align: center;
 `;
 
-const EmptyBox = styled.div`
-  width: 48px;
-  height: 48px;
-  border: 1px solid ${({ theme }) => theme.colors.gray[500]};
-  ${({ theme }) => theme.textStyles.H_B_24};
+const TabSelector = styled.div`
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: ${({ theme }) => theme.colors.gray[500]};
+  border: 1px solid ${({ theme }) => theme.colors.black};
 `;
 
-const BottomArea = styled.div`
-  height: 3000px;
-  margin-top: 16px;
+const Divider = styled.hr`
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  width: 100%;
 `;
 
 const TypeTabRow = styled.div`
@@ -516,16 +397,15 @@ const TypeTabRow = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
   margin-bottom: 8px;
 `;
 
-const TypeTabButton = styled.button<{ active: boolean }>`
-  width: 100%;
-  padding: 6px 6px;
-  border: none;
-  background: ${({ active, theme }) => (active ? theme.colors.gray[100] : 'transparent')};
-  color: ${({ active, theme }) => (active ? theme.colors.black : theme.colors.gray[500])};
-  cursor: pointer;
-  ${({ theme }) => theme.textStyles.T_SB_16};
+const DragPreview = styled.div`
+  pointer-events: none;
+  position: fixed;
+  z-index: 1555;
+  width: 100px;
+  height: 100px;
+  background: ${({ theme }) => theme.colors.gray[500]}
+  transition: opacity 0.2s;
 `;
