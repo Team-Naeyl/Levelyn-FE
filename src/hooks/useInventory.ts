@@ -5,16 +5,8 @@ import {
   updateEquippedSkills,
   updateEquippedItems,
 } from '../services/inventory';
+import type { InventoryItem } from '../types/inventory.types';
 
-export interface InventoryItem {
-  id: number;
-  name: string;
-  description: string;
-  imageURL: string;
-  equipped: boolean;
-}
-
-// 아이템 목록 가져오기 훅
 export function useInventoryItems() {
   return useQuery<InventoryItem[]>({
     queryKey: ['inventory-items'],
@@ -28,7 +20,6 @@ export function useInventoryItems() {
   });
 }
 
-// 아이템 장착/해제 mutation
 export function useUpdateItemsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -39,7 +30,6 @@ export function useUpdateItemsMutation() {
   });
 }
 
-// 스킬 목록 가져오기 훅
 export function useInventorySkills() {
   return useQuery<InventoryItem[]>({
     queryKey: ['inventory-skills'],
@@ -53,7 +43,6 @@ export function useInventorySkills() {
   });
 }
 
-// 스킬 장착/해제 mutation
 export function useUpdateSkillsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
