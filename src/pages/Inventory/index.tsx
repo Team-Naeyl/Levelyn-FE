@@ -77,16 +77,7 @@ export default function InventoryPage() {
     await handleEquip(item.id, tab);
   };
 
-  const {
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd,
-    onTouchCancel,
-    isDragging,
-    draggedItem,
-    dragPosition,
-    setDropZoneRef,
-  } = useDragAndDrop<InventoryItem>(handleDrop);
+  const { isDragging, draggedItem, dragPosition } = useDragAndDrop<InventoryItem>(handleDrop);
 
   const equippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
   const unequippedDnD = useDragAndDrop<InventoryItem>(handleDrop);

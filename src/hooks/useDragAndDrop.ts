@@ -23,7 +23,6 @@ export function useDragAndDrop<T>(onDrop: (item: T) => void): DragAndDropResult<
   };
 
   const onTouchStart = (item: T) => (e: React.TouchEvent) => {
-    console.log('땃쥐');
     touchTimeout.current = window.setTimeout(() => {
       setDraggedItem(item);
       setDragging(true);

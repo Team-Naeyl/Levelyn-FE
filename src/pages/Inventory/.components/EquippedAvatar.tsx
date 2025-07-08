@@ -80,7 +80,6 @@ const EmptyBox = styled.div`
   height: 44px;
   border: 1px solid ${({ theme }) => theme.colors.gray[400]};
   color: ${({ theme }) => theme.colors.gray[400]};
-  /* 반짝임 효과 */
   animation: emptyGlow 1.8s infinite alternate;
 
   @keyframes emptyGlow {
@@ -100,6 +99,20 @@ const EmptyBox = styled.div`
 const EquippedItemBox = styled(ItemBox)`
   width: 44px;
   height: 44px;
+  animation: emptyGlow 1.8s infinite alternate;
+
+  @keyframes emptyGlow {
+    0% {
+      border-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+    70% {
+      border-color: ${({ theme }) => theme.colors.black};
+      box-shadow: 0 0 1px 0 ${({ theme }) => theme.colors.black};
+    }
+    100% {
+      border-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+  }
 `;
 
 const TypeLabel = styled.div`
