@@ -43,11 +43,9 @@ export function useDragAndDrop<T>(onDrop: (item: T) => void): DragAndDropResult<
     }
 
     if (dragging && draggedItem && dragPosition && dropZoneRef.current) {
-      console.log('세코다냐');
       const { left, top, right, bottom } = dropZoneRef.current.getBoundingClientRect();
       const { x, y } = dragPosition;
       if (x >= left && x <= right && y >= top && y <= bottom) {
-        console.log('존은 굉장히 안정적이야');
         onDrop(draggedItem);
       }
     }

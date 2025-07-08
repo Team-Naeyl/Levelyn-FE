@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import styled from '@emotion/styled';
 import Header from '../../components/common/Header';
 import ItemModal from './.components/ItemModal';
