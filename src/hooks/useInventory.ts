@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getInventoryItems,
-  getInventorySkills,
+  getInventoryUserSkills,
   updateEquippedSkills,
   updateEquippedItems,
 } from '../services/inventory';
+import { getImageUrl } from '../services/appwrite';
+
 import type { InventoryItem } from '../types/inventory.types';
 
 export function useInventoryItems() {
@@ -14,7 +16,7 @@ export function useInventoryItems() {
       const res = await getInventoryItems();
       return res.map((item: InventoryItem) => ({
         ...item,
-        imageURL: 'https://picsum.photos/seed/item1/64', // TODO: appWrite 연결
+        imageURL: getImageUrl(`weapon-${item.id}`),
       }));
     },
   });
@@ -34,10 +36,10 @@ export function useInventorySkills() {
   return useQuery<InventoryItem[]>({
     queryKey: ['inventory-skills'],
     queryFn: async () => {
-      const res = await getInventorySkills();
+      const res = await getInventoryUserSkills();
       return res.map((skill: InventoryItem) => ({
         ...skill,
-        imageURL: 'https://picsum.photos/seed/item1/64', // TODO: appWrite 연결
+        imageURL: getImageUrl(`skill-${skill.id}`),
       }));
     },
   });
