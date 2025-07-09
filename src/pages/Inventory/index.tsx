@@ -4,7 +4,6 @@ import Header from '../../components/common/Header';
 import ItemModal from './.components/ItemModal';
 import InventoryGrid from './.components/InventoryGrid';
 import EquippedAvatar from './.components/EquippedAvatar';
-import { getImageUrl } from '../../services/appwrite';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 import {
   useInventoryItems,
