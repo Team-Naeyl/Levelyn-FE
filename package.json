@@ -24,6 +24,7 @@
     "@emotion/styled": "^11.14.0",
     "@iconify-icons/material-symbols": "^1.2.58",
     "@iconify/react": "^6.0.0",
+    "@tanstack/react-query": "^5.81.5",
     "appwrite": "^18.1.1",
     "axios": "^1.10.0",
     "react": "^19.1.0",
