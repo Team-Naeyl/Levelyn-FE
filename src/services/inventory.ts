@@ -11,6 +11,11 @@ export const getInventorySkills = async (): Promise<InventoryItem[]> => {
   return response.data.skills;
 };
 
+export const getInventoryUserSkills = async (): Promise<InventoryItem[]> => {
+  const response = await api.get<GetInventorySkillsResponse>('/api/inventory/skills');
+  return response.data.userSkills;
+};
+
 export const updateEquippedSkills = async (skillIds: number[]): Promise<void> => {
   await api.put('/api/inventory/skills/slot', { skillIds });
 };
