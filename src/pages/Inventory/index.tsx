@@ -9,6 +9,7 @@ import {
   updateEquippedSkills,
   updateEquippedItems,
 } from '../../services/inventory';
+import { getImageUrl } from '../../services/appwrite';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 
 type InventoryTab = 'skill' | 'item';
@@ -55,16 +56,14 @@ export default function InventoryPage() {
         const itemsResult = await getInventoryItems();
         const skillsResult = await getInventorySkills();
 
-        const imageURL = 'https://picsum.photos/seed/item1/64';
-
         const items: InventoryItem[] = itemsResult.map((item: InventoryItem) => ({
           ...item,
-          imageURL,
+          imageURL: getImageUrl(`weapon-${item.id}`),
         }));
 
-        const skills: InventoryItem[] = skillsResult.map((skill: InventoryItem) => ({
+        const skills: InventoryItem[] = skillsResult.map((skill) => ({
           ...skill,
-          imageURL,
+          imageURL: getImageUrl(`skill-${skill.id}`),
         }));
 
         setEquippedItems(items.filter((i) => i.equipped));

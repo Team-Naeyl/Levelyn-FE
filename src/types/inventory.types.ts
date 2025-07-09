@@ -11,5 +11,6 @@ export interface GetInventoryItemsResponse {
 }
 
 export interface GetInventorySkillsResponse {
+  skills: InventoryItem[];
   userSkills: InventoryItem[];
 }
