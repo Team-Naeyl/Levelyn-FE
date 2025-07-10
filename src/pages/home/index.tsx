@@ -9,6 +9,7 @@ import TileMap from '../../components/common/tilemap';
 import Header from '../../components/common/Header';
 import { getDailyTodoList, fulfillTodo } from '../../services/todo';
 import { getCurrentGoal } from '../../services/goal';
+import { getMyPageData } from '../../services/myPage';
 import type { TodoDTO } from '../../types/todo.types';
 import type { GoalDTO } from '../../types/goal.types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -23,12 +24,11 @@ interface TodoItemData {
   category: CategoryType;
 }
 
-const mockUser = {
-  name: '레벨린',
-  level: 5,
-  exp: 75,
-  maxExp: 100,
-};
+interface UserStatus {
+  nickname: string;
+  level: number;
+  exp: number;
+}
 
 // TodoDTO를 TodoItem props로 변환하는 함수
 const transformTodoData = (apiTodo: TodoDTO): TodoItemData => {
@@ -59,6 +59,7 @@ export default function Home() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(() => sessionStorage.getItem('drawerState') === 'open');
   const [todos, setTodos] = useState<TodoItemData[]>([]);
   const [mapTodos, setMapTodos] = useState<TodoItemData[]>([]); // 타일맵을 위한 상태
+  const [userStatus, setUserStatus] = useState<UserStatus>({ nickname: '...', level: 1, exp: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,9 +89,10 @@ export default function Home() {
       const day = String(today.getDate()).padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
 
-      const [todoResults, goalResult] = await Promise.allSettled([
+      const [todoResults, goalResult, myPageResult] = await Promise.allSettled([
         getDailyTodoList({ date: formattedDate }),
         getCurrentGoal(),
+        getMyPageData(),
       ]);
 
       // 오늘 할 일 목록 상태 업데이트
@@ -106,6 +108,18 @@ export default function Home() {
         combinedItems.push(transformedGoal);
       }
       setTodos(combinedItems);
+
+      // 사용자 정보 상태 업데이트
+      if (myPageResult.status === 'fulfilled') {
+        const { profile, character } = myPageResult.value;
+        setUserStatus({
+          nickname: profile.name,
+          level: character.state.level,
+          exp: character.state.exp,
+        });
+      } else {
+        setError((prev) => (prev ? `${prev}, 사용자 정보 로딩 실패` : '사용자 정보를 불러오는데 실패했습니다.'));
+      }
     } catch (err) {
       setError('데이터를 불러오는 중 알 수 없는 에러가 발생했습니다.');
     } finally {
@@ -198,14 +212,14 @@ export default function Home() {
       <Header />
       <UserInfo>
         <NameLevelRow>
-          <span>{mockUser.name}</span>
-          <Level>Lv. {mockUser.level}</Level>
+          <span>{userStatus.nickname}</span>
+          <Level>Lv. {userStatus.level}</Level>
         </NameLevelRow>
         <ProgressBar
           variant="exp"
           label="EXP"
-          total={mockUser.maxExp}
-          current={mockUser.exp}
+          total={100}
+          current={userStatus.exp}
           width={160}
           height={16}
         />
@@ -248,10 +262,12 @@ const NameLevelRow = styled.div`
   display: flex;
   justify-content: space-between;
   width: 100%;
+  font-weight: 600;
 `;
 
 const Level = styled.span`
   ${({ theme }) => theme.textStyles.B_R_14};
+  font-weight: 600;
 `;
 
 const Content = styled.main`
