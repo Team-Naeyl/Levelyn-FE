@@ -198,8 +198,8 @@ export default function InventoryPage() {
               {isAnyDragging && currentDraggedItem && currentDragPosition && (
                 <DragPreview
                   style={{
-                    left: currentDragPosition.x + 20,
-                    top: currentDragPosition.y + 20,
+                    left: currentDragPosition.x,
+                    top: currentDragPosition.y,
                   }}
                 >
                   <img
@@ -262,8 +262,8 @@ export default function InventoryPage() {
               {isAnyDragging && currentDraggedItem && currentDragPosition && (
                 <DragPreview
                   style={{
-                    left: currentDragPosition.x,
-                    top: currentDragPosition.y,
+                    left: currentDragPosition.x - 50,
+                    top: currentDragPosition.y - 50,
                   }}
                 >
                   <img
