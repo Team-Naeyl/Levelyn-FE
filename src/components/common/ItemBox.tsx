@@ -54,8 +54,8 @@ const Image = styled.img`
 const RemoveButton = styled.button`
   ${({ theme }) => `
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: 4px;
+    right: 4px;
     color: ${theme.colors.white};
     background: ${theme.colors.error[500]};
     border: none;

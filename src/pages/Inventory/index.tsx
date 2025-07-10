@@ -1,147 +1,110 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styled from '@emotion/styled';
-import ItemBox from '../../components/common/ItemBox';
 import Header from '../../components/common/Header';
 import ItemModal from './.components/ItemModal';
-import {
-  getInventoryItems,
-  getInventorySkills,
-  updateEquippedSkills,
-  updateEquippedItems,
-} from '../../services/inventory';
+import InventoryGrid from './.components/InventoryGrid';
+import EquippedAvatar from './.components/EquippedAvatar';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
+import {
+  useInventoryItems,
+  useInventorySkills,
+  useUpdateItemsMutation,
+  useUpdateSkillsMutation,
+} from '../../hooks/useInventory';
+import type { InventoryItem } from '../../types/inventory.types';
 
 type InventoryTab = 'skill' | 'item';
 
-interface InventoryItem {
-  id: number;
-  name: string;
-  description: string;
-  imageURL: string;
-  equipped: boolean;
-}
+const ITEM_TYPES = [
+  { type: 1, label: '무기' },
+  { type: 2, label: '팔찌' },
+  { type: 3, label: '목걸이' },
+  { type: 4, label: '반지' },
+  { type: 5, label: '귀걸이' },
+];
 
 export default function InventoryPage() {
   const [tab, setTab] = useState<InventoryTab>('skill');
-
-  const [equippedItems, setEquippedItems] = useState<InventoryItem[]>([]);
-  const [unequippedItems, setUnequippedItems] = useState<InventoryItem[]>([]);
-  const [equippedSkills, setEquippedSkills] = useState<InventoryItem[]>([]);
-  const [unequippedSkills, setUnequippedSkills] = useState<InventoryItem[]>([]);
-
-  const [isLoading, setIsLoading] = useState(false); // 목록 조회용
-  const [isActionLoading, setIsActionLoading] = useState(false); // 장착/해제용
-  const [error, setError] = useState<string | null>(null);
-
-  const equippedData = {
-    skill: equippedSkills,
-    item: equippedItems,
-  } as const;
-
-  const unequippedData = {
-    skill: unequippedSkills,
-    item: unequippedItems,
-  } as const;
-
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemTabType, setItemTabType] = useState<number>(1);
 
-  useEffect(() => {
-    const fetchInventory = async () => {
-      setIsLoading(true);
-      setError(null);
+  const { data: items = [], isLoading: itemsLoading, error: itemsError } = useInventoryItems();
+  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useInventorySkills();
 
-      try {
-        const itemsResult = await getInventoryItems();
-        const skillsResult = await getInventorySkills();
+  const updateSkillsMutation = useUpdateSkillsMutation();
+  const updateItemsMutation = useUpdateItemsMutation();
 
-        const imageURL = 'https://picsum.photos/seed/item1/64';
+  const equippedByType = (type: number) => items.find((item) => item.type.id === type && item.equipped);
 
-        const items: InventoryItem[] = itemsResult.map((item: InventoryItem) => ({
-          ...item,
-          imageURL,
-        }));
-
-        const skills: InventoryItem[] = skillsResult.map((skill: InventoryItem) => ({
-          ...skill,
-          imageURL,
-        }));
-
-        setEquippedItems(items.filter((i) => i.equipped));
-        setUnequippedItems(items.filter((i) => !i.equipped));
-        setEquippedSkills(skills.filter((s) => s.equipped));
-        setUnequippedSkills(skills.filter((s) => !s.equipped));
-      } catch (err) {
-        setError('인벤토리 데이터 로딩에 실패했습니다.');
-        console.error('인벤토리 데이터 로딩 실패:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInventory();
-  }, []);
+  const unequippedByType = (type: number) => items.filter((item) => item.type.id === type && !item.equipped);
 
   const handleEquip = async (id: number, type: InventoryTab): Promise<void> => {
-    if (isActionLoading) return;
+    if (type === 'skill') {
+      if (updateSkillsMutation.isPending) return;
+      const equippedSkills = skills.filter((s) => s.equipped);
+      const unequippedSkills = skills.filter((s) => !s.equipped);
+      const isEquipped = equippedSkills.some((s) => s.id === id);
+      const newEquipped = isEquipped
+        ? equippedSkills.filter((s) => s.id !== id)
+        : [...equippedSkills, unequippedSkills.find((s) => s.id === id)!];
 
-    setIsActionLoading(true);
-    try {
-      if (type === 'skill') {
-        const newEquipped = equippedSkills.some((s) => s.id === id)
-          ? equippedSkills.filter((s) => s.id !== id)
-          : [...equippedSkills, unequippedSkills.find((s) => s.id === id)!];
-
-        if (newEquipped.length > 3) {
-          alert('스킬은 최대 3개까지만 장착할 수 있습니다.');
-          return;
-        }
-
-        await updateEquippedSkills(newEquipped.map((s) => s.id));
-
-        const newUnequipped = [...unequippedSkills, ...equippedSkills.filter((s) => !newEquipped.includes(s))].filter(
-          (s) => !newEquipped.some((e) => e.id === s.id)
-        );
-
-        setEquippedSkills(newEquipped);
-        setUnequippedSkills(newUnequipped);
-      } else {
-        await updateEquippedItems([id]);
-        setEquippedItems((prev) =>
-          prev.some((i) => i.id === id)
-            ? prev.filter((i) => i.id !== id)
-            : [...prev, unequippedItems.find((i) => i.id === id)!]
-        );
-        setUnequippedItems((prev) =>
-          prev.some((i) => i.id === id)
-            ? prev.filter((i) => i.id !== id)
-            : [...prev, equippedItems.find((i) => i.id === id)!]
-        );
+      if (newEquipped.length > 3) {
+        alert('스킬은 최대 3개까지만 장착할 수 있습니다.');
+        return;
       }
-    } catch (err) {
-      console.error('장착 요청 실패', err);
-    } finally {
-      setIsActionLoading(false);
+
+      await updateSkillsMutation.mutateAsync(newEquipped.map((s) => s.id));
+    } else {
+      if (updateItemsMutation.isPending) return;
+
+      await updateItemsMutation.mutateAsync([id]);
     }
   };
 
   const openModal = (item: InventoryItem): void => {
-    if (isActionLoading) return;
+    if (updateSkillsMutation.isPending || updateItemsMutation.isPending) return;
     setSelectedItem(item);
     setIsModalOpen(true);
   };
-
   const closeModal = (): void => {
     setSelectedItem(null);
     setIsModalOpen(false);
   };
 
-  const { onTouchStart, onTouchEnd, onTouchCancel, isDragging } = useDragAndDrop<InventoryItem>();
-
   const handleDrop = async (item: InventoryItem) => {
-    if (isActionLoading) return;
+    if (updateSkillsMutation.isPending || updateItemsMutation.isPending) return;
     await handleEquip(item.id, tab);
   };
+
+  const equippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
+  const unequippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
+
+  const equippedData = {
+    skill: skills.filter((s) => s.equipped),
+    item: items.filter((i) => i.equipped),
+  } as const;
+  const unequippedData = {
+    skill: skills.filter((s) => !s.equipped),
+    item: items.filter((i) => !i.equipped),
+  } as const;
+
+  const isLoading = tab === 'item' ? itemsLoading : skillsLoading;
+  const error = (tab === 'item' ? itemsError : skillsError) as Error | null;
+  const isActionLoading = updateSkillsMutation.isPending || updateItemsMutation.isPending;
+
+  const handleTabClick = (type: number) => {
+    setItemTabType(type);
+  };
+
+  const handleBoxClick = (item: InventoryItem) => {
+    if (item.type) setItemTabType(item.type.id);
+    openModal(item);
+  };
+
+  const isAnyDragging = equippedDnD.isDragging || unequippedDnD.isDragging;
+  const currentDraggedItem = equippedDnD.isDragging ? equippedDnD.draggedItem : unequippedDnD.draggedItem;
+  const currentDragPosition = equippedDnD.isDragging ? equippedDnD.dragPosition : unequippedDnD.dragPosition;
 
   return (
     <Wrapper>
@@ -168,75 +131,156 @@ export default function InventoryPage() {
         </TabSelector>
       </Menu>
 
-      <MainArea>
-        {isLoading ? (
-          <CenterText>스킬/아이템 목록을 가져오는 중...</CenterText>
-        ) : error ? (
-          <ErrorText>{error}</ErrorText>
-        ) : (
-          <>
-            <Grid
-              {...{
-                onTouchEnd: onTouchEnd(handleDrop),
-                onTouchCancel,
-                style: { touchAction: 'none' },
-              }}
-            >
-              {equippedData[tab].map((el) => (
-                <ItemBox
-                  key={el.id}
-                  imageURL={el.imageURL}
-                  equipped={true}
-                  onClick={() => openModal(el)}
-                  {...{
-                    onTouchStart: onTouchStart(el),
-                    onTouchEnd: onTouchEnd(handleDrop),
-                    onTouchCancel,
-                    style: {
-                      opacity: isDragging ? 0.6 : 1,
-                      touchAction: 'none',
-                      cursor: isDragging ? 'grabbing' : 'pointer',
-                    },
+      {isLoading ? (
+        <CenterText>목록을 가져오는 중...</CenterText>
+      ) : error ? (
+        <ErrorText>{error.message || '데이터 로딩 실패'}</ErrorText>
+      ) : (
+        <>
+          {tab === 'item' && (
+            <>
+              <EquippedAvatar
+                slots={ITEM_TYPES.map((t) => ({
+                  label: t.label,
+                  item: equippedByType(t.type)
+                    ? { id: equippedByType(t.type)!.id, imageURL: equippedByType(t.type)!.imageURL }
+                    : null,
+                  onClick: () => openModal(equippedByType(t.type)!),
+                }))}
+              />
+              <EquipArea>
+                <TypeTabRow>
+                  {ITEM_TYPES.map((t) => (
+                    <TypeTabButton
+                      key={t.type}
+                      active={itemTabType === t.type}
+                      onClick={() => handleTabClick(t.type)}
+                    >
+                      {t.label}
+                    </TypeTabButton>
+                  ))}
+                </TypeTabRow>
+                <div ref={unequippedDnD.setDropZoneRef}>
+                  <SectionTitle>장비 중인 아이템</SectionTitle>
+                  {equippedByType(itemTabType) ? (
+                    <InventoryGrid
+                      data={equippedByType(itemTabType) ? [equippedByType(itemTabType)!] : []}
+                      isEquipped={true}
+                      isDragging={equippedDnD.isDragging}
+                      onItemClick={openModal}
+                      onTouchStart={equippedDnD.onTouchStart}
+                      onTouchMove={equippedDnD.onTouchMove}
+                      onTouchEnd={equippedDnD.onTouchEnd}
+                      onTouchCancel={equippedDnD.onTouchCancel}
+                    />
+                  ) : (
+                    <CenterText>장착된 아이템이 없습니다.</CenterText>
+                  )}
+                </div>
+                <Divider />
+                <div ref={equippedDnD.setDropZoneRef}>
+                  {unequippedByType(itemTabType).length === 0 && (
+                    <CenterText>장착 가능한 아이템이 없습니다.</CenterText>
+                  )}
+                  <InventoryGrid
+                    data={unequippedByType(itemTabType)}
+                    isDragging={unequippedDnD.isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={unequippedDnD.onTouchStart}
+                    onTouchMove={unequippedDnD.onTouchMove}
+                    onTouchEnd={unequippedDnD.onTouchEnd}
+                    onTouchCancel={unequippedDnD.onTouchCancel}
+                  />
+                </div>
+              </EquipArea>
+              {isAnyDragging && currentDraggedItem && currentDragPosition && (
+                <DragPreview
+                  style={{
+                    left: currentDragPosition.x - 50,
+                    top: currentDragPosition.y - 50,
                   }}
-                />
-              ))}
-            </Grid>
-            <Divider />
-            <Grid
-              {...{
-                onTouchEnd: onTouchEnd(handleDrop),
-                onTouchCancel,
-                style: { touchAction: 'none' },
-              }}
-            >
-              {unequippedData[tab].map((el) => (
-                <ItemBox
-                  key={el.id}
-                  imageURL={el.imageURL}
-                  onClick={() => openModal(el)}
-                  {...{
-                    onTouchStart: onTouchStart(el),
-                    onTouchEnd: onTouchEnd(handleDrop),
-                    onTouchCancel,
-                    style: {
-                      opacity: isDragging ? 0.6 : 1,
-                      touchAction: 'none',
-                      cursor: isDragging ? 'grabbing' : 'pointer',
-                    },
+                >
+                  <img
+                    src={currentDraggedItem.imageURL}
+                    alt=""
+                    width={80}
+                    height={80}
+                  />
+                </DragPreview>
+              )}
+              {isActionLoading && (
+                <Overlay>
+                  <Spinner />
+                </Overlay>
+              )}
+            </>
+          )}
+          {tab === 'skill' && (
+            <>
+              <EquippedAvatar
+                slots={[0, 1, 2].map((idx) => {
+                  const equippedSkill = equippedData.skill[idx];
+                  return {
+                    label: `스킬 ${idx + 1}`,
+                    item: equippedSkill ? { id: equippedSkill.id, imageURL: equippedSkill.imageURL } : null,
+                    onClick: () => handleBoxClick(equippedSkill),
+                  };
+                })}
+              />
+              <EquipArea>
+                <div ref={unequippedDnD.setDropZoneRef}>
+                  <SectionTitle>장착 중인 스킬</SectionTitle>
+                  {equippedData.skill.length === 0 && <CenterText>장착된 스킬이 없습니다.</CenterText>}
+                  <InventoryGrid
+                    data={equippedData.skill}
+                    isEquipped={true}
+                    isDragging={equippedDnD.isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={equippedDnD.onTouchStart}
+                    onTouchMove={equippedDnD.onTouchMove}
+                    onTouchEnd={equippedDnD.onTouchEnd}
+                    onTouchCancel={equippedDnD.onTouchCancel}
+                  />
+                </div>
+                <Divider />
+                <div ref={equippedDnD.setDropZoneRef}>
+                  {unequippedData.skill.length === 0 && <CenterText>장착 가능한 스킬이 없습니다.</CenterText>}
+                  <InventoryGrid
+                    data={unequippedData.skill}
+                    isEquipped={false}
+                    isDragging={unequippedDnD.isDragging}
+                    onItemClick={openModal}
+                    onTouchStart={unequippedDnD.onTouchStart}
+                    onTouchMove={unequippedDnD.onTouchMove}
+                    onTouchEnd={unequippedDnD.onTouchEnd}
+                    onTouchCancel={unequippedDnD.onTouchCancel}
+                  />
+                </div>
+              </EquipArea>
+              {isAnyDragging && currentDraggedItem && currentDragPosition && (
+                <DragPreview
+                  style={{
+                    left: currentDragPosition.x - 50,
+                    top: currentDragPosition.y - 50,
                   }}
-                />
-              ))}
-            </Grid>
-          </>
-        )}
-
-        {isActionLoading && (
-          <Overlay>
-            <Spinner />
-          </Overlay>
-        )}
-      </MainArea>
-
+                >
+                  <img
+                    src={currentDraggedItem.imageURL}
+                    alt=""
+                    width={80}
+                    height={80}
+                  />
+                </DragPreview>
+              )}
+              {isActionLoading && (
+                <Overlay>
+                  <Spinner />
+                </Overlay>
+              )}
+            </>
+          )}
+        </>
+      )}
       {selectedItem && (
         <ItemModal
           item={selectedItem}
@@ -252,77 +296,66 @@ export default function InventoryPage() {
   );
 }
 
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Menu = styled.header`
-  text-align: center;
-`;
-
-const TabSelector = styled.div`
-  display: flex;
-  justify-content: center;
-  border: 1px solid ${({ theme }) => theme.colors.black};
-`;
-
-const TabButton = styled.button<{ selected: boolean }>`
+const BaseButton = styled.button`
   width: 100%;
-  padding: 8px;
-  ${({ theme }) => theme.textStyles.B_R_14};
   cursor: pointer;
+  border: none;
+  ${({ theme }) => theme.textStyles.T_SB_16};
   transition:
-    background-color 0.2s ease,
+    background-color 0.2s,
     opacity 0.2s;
+`;
+
+const TabButton = styled(BaseButton)<{ selected?: boolean }>`
+  padding: 8px;
   border-right: 1px solid ${({ theme }) => theme.colors.black};
+  background-color: ${({ selected, theme }) => (selected ? theme.colors.gray[100] : 'transparent')};
   &:last-of-type {
     border-right: none;
   }
-
-  background-color: ${({ selected, theme }) => (selected ? theme.colors.gray[100] : 'transparent')};
-
-  &:hover:enabled {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
 `;
 
-const MainArea = styled.main`
-  position: relative;
-  min-height: 300px;
+const TypeTabButton = styled(BaseButton)<{ active: boolean }>`
+  padding: 6px 6px;
+  border-radius: 2px;
+  background: ${({ active, theme }) => (active ? theme.colors.primary[500] : 'transparent')};
+  color: ${({ active, theme }) => (active ? theme.colors.white : theme.colors.gray[500])};
 `;
 
-const Grid = styled.div`
-  display: grid;
-  padding: 20px;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  touch-action: none;
+const BaseLabel = styled.div`
+  ${({ theme }) => theme.textStyles.T_SB_16};
 `;
 
-const Divider = styled.hr`
-  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+const SectionTitle = styled(BaseLabel)`
+  padding: 0 8px;
+  color: ${({ theme }) => theme.colors.gray[700]};
 `;
 
-const CenterText = styled.div`
+const EquipArea = styled.div`
+  width: 320px;
+  max-height: 306px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+`;
+
+const CenterText = styled(BaseLabel)`
+  height: 110px;
   width: 100%;
   text-align: center;
   padding: 40px 0;
   color: ${({ theme }) => theme.colors.gray[500]};
-  ${({ theme }) => theme.textStyles.B_R_16};
 `;
 
-const ErrorText = styled.div`
+const ErrorText = styled(BaseLabel)`
   width: 100%;
   text-align: center;
   padding: 40px 0;
-  color: #e53935;
+  color: ${({ theme }) => theme.colors.error[700]};
   font-weight: bold;
-  ${({ theme }) => theme.textStyles.B_R_16};
 `;
 
 const Overlay = styled.div`
@@ -342,13 +375,52 @@ const Spinner = styled.div`
   width: 48px;
   height: 48px;
   border: 5px solid ${({ theme }) => theme.colors.gray[200]};
-  border-top: 5px solid ${({ theme }) => theme.colors.primary || '#3498db'};
+  border-top: 5px solid ${({ theme }) => theme.colors.primary[400]};
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-
   @keyframes spin {
     to {
       transform: rotate(360deg);
     }
   }
+`;
+
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 320px;
+`;
+
+const Menu = styled.header`
+  text-align: center;
+`;
+
+const TabSelector = styled.div`
+  display: flex;
+  justify-content: center;
+  border: 1px solid ${({ theme }) => theme.colors.black};
+`;
+
+const Divider = styled.hr`
+  border: 1px solid ${({ theme }) => theme.colors.gray[100]};
+  width: 100%;
+`;
+
+const TypeTabRow = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const DragPreview = styled.div`
+  pointer-events: none;
+  position: fixed;
+  z-index: 1555;
+  opacity: 0.6;
+  background: ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[500]};
+  transition: opacity 0.2s;
 `;

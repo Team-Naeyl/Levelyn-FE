@@ -1,6 +1,6 @@
-type LongPressHandler<T = void> = (payload: T) => void;
+type LongPressHandlerProp<T = void> = (payload: T) => void;
 
-export function longPressHandler<T = void>(onLongPress: LongPressHandler<T>, payload: T, ms = 200) {
+export function longPressHandler<T = void>(onLongPress: LongPressHandlerProp<T>, payload: T, ms = 200) {
   let timer: number | null = null;
 
   const onStart = () => {

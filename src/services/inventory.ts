@@ -8,6 +8,11 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
 
 export const getInventorySkills = async (): Promise<InventoryItem[]> => {
   const response = await api.get<GetInventorySkillsResponse>('/api/inventory/skills');
+  return response.data.skills;
+};
+
+export const getInventoryUserSkills = async (): Promise<InventoryItem[]> => {
+  const response = await api.get<GetInventorySkillsResponse>('/api/inventory/skills');
   return response.data.userSkills;
 };
 

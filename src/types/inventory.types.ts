@@ -4,6 +4,7 @@ export interface InventoryItem {
   description: string;
   imageURL: string;
   equipped: boolean;
+  type: { id: number; value: string };
 }
 
 export interface GetInventoryItemsResponse {
@@ -11,5 +12,6 @@ export interface GetInventoryItemsResponse {
 }
 
 export interface GetInventorySkillsResponse {
+  skills: InventoryItem[];
   userSkills: InventoryItem[];
 }
