@@ -1,14 +1,95 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { type PropsWithChildren, useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom';
+import Inventory from './pages/Inventory';
+import BottomNavigationLayout from './components/layout/BottomNavigation/BottomNavigationLayout';
+import Home from './pages/home';
+import Login from './pages/login';
+import { useAuth } from './contexts/AuthContext';
+import Profile from './pages/Profile';
+import CreateTodo from './pages/CreateTodo';
+import KakaoCallback from './pages/KakaoCallback';
+import EditTodo from './pages/EditTodo';
+import ErrorPage from './pages/ErrorPage';
+import { NotificationProvider } from './contexts/NotificationContext';
 
-const router = createBrowserRouter([
+const PrivateRoute = ({ children }: PropsWithChildren) => {
+  const { isLoggedIn, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      navigate('/login');
+    }
+  }, [isLoading, isLoggedIn, navigate]);
+
+  if (isLoading || !isLoggedIn) {
+    return <div>로딩 중...</div>;
+  }
+
+  return children;
+};
+
+const loggedInRouter = createBrowserRouter([
   {
-    path: '/',
-    element: <h1>github actions test</h1>,
-    errorElement: <div>오류!</div>,
-    children: [],
+    element: (
+      <PrivateRoute>
+        <NotificationProvider>
+          <Outlet />
+        </NotificationProvider>
+      </PrivateRoute>
+    ),
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        element: <BottomNavigationLayout />,
+        children: [
+          {
+            path: '/',
+            element: <Home />,
+          },
+          {
+            path: 'inventory',
+            element: <Inventory />,
+          },
+          {
+            path: 'profile',
+            element: <Profile />,
+          },
+        ],
+      },
+      {
+        path: '/todo/create',
+        element: <CreateTodo />,
+      },
+      {
+        path: '/todo/edit',
+        element: <EditTodo />,
+      },
+    ],
+  },
+]);
+
+const loggedOutRouter = createBrowserRouter([
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/auth/kakao/callback',
+    element: <KakaoCallback />,
+  },
+  {
+    path: '*',
+    element: <Login />,
   },
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  const { isLoggedIn, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>로딩 중...</div>;
+  }
+
+  return <RouterProvider router={isLoggedIn ? loggedInRouter : loggedOutRouter} />;
 }

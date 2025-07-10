@@ -1,9 +1,23 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
+import GlobalStyles from './styles/GlobalStyles.tsx';
+import { theme } from './styles/theme.ts';
+import { ThemeProvider } from '@emotion/react';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider theme={theme}>
+          <GlobalStyles />
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
