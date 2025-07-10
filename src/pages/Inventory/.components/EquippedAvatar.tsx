@@ -26,15 +26,11 @@ export default function EquippedAvatar({ slots, avatarImg = avatar }: EquippedAr
         {slots.map((slot, idx) => (
           <EquippedRow key={slot.label + idx}>
             <TypeLabel>{slot.label}</TypeLabel>
-            {slot.item ? (
-              <EquippedItemBox
-                key={slot.item.id}
-                imageURL={slot.item.imageURL}
-                onClick={slot.onClick}
-              />
-            ) : (
-              <EmptyBox></EmptyBox>
-            )}
+            <EquippedItemBox
+              key={slot.item ? slot.item.id : idx}
+              imageURL={slot.item ? slot.item.imageURL : ''}
+              onClick={slot.item ? slot.onClick : undefined}
+            />
           </EquippedRow>
         ))}
       </EquippedCol>
@@ -73,27 +69,6 @@ const EquippedRow = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-`;
-
-const EmptyBox = styled.div`
-  width: 44px;
-  height: 44px;
-  border: 1px solid ${({ theme }) => theme.colors.gray[400]};
-  color: ${({ theme }) => theme.colors.gray[400]};
-  animation: emptyGlow 1.8s infinite alternate;
-
-  @keyframes emptyGlow {
-    0% {
-      border-color: ${({ theme }) => theme.colors.gray[400]};
-    }
-    70% {
-      border-color: ${({ theme }) => theme.colors.gray[700]};
-      box-shadow: 0 0 1px 0 ${({ theme }) => theme.colors.gray[300]};
-    }
-    100% {
-      border-color: ${({ theme }) => theme.colors.gray[400]};
-    }
-  }
 `;
 
 const EquippedItemBox = styled(ItemBox)`

@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { Icon } from '@iconify/react';
 import removeIcon from '@iconify-icons/material-symbols/remove';
+import defaultImage from '../../assets/default.png';
 
 interface ItemBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   imageURL: string;
@@ -10,20 +11,28 @@ interface ItemBoxProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function ItemBox({ imageURL, size = 'fullwidth', equipped, onUnequip, ...props }: ItemBoxProps) {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = defaultImage;
+  };
+
   return (
     <Wrapper
       size={size}
       {...props}
     >
-      {equipped && (
-        <RemoveButton onClick={onUnequip}>
+      <Image
+        src={imageURL ? imageURL : defaultImage}
+        alt="item"
+        onError={handleImageError}
+      />
+      {equipped && size === 'fullwidth' && (
+        <RemoveButton
+          type="button"
+          onClick={onUnequip}
+        >
           <Icon icon={removeIcon} />
         </RemoveButton>
       )}
-      <Image
-        src={imageURL}
-        alt="item"
-      />
     </Wrapper>
   );
 }

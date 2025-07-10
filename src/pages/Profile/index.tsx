@@ -7,8 +7,26 @@ import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
 import ItemBox from '../../components/common/ItemBox';
 import { getMyPageData } from '../../services/myPage';
+import { getImageUrl } from '../../services/appwrite';
 import type { MyPageData } from '../../types/myPage.types';
 import avatarImage from '../../assets/avatar.png';
+
+const getItemImagePrefix = (typeId: number) => {
+  switch (typeId) {
+    case 1:
+      return 'arms-'; // 무기
+    case 2:
+      return 'braceletes-'; // 팔찌
+    case 3:
+      return 'necklaces-'; // 목걸이
+    case 4:
+      return 'rings-'; // 반지
+    case 5:
+      return 'earings-'; // 귀걸이
+    default:
+      return 'item-'; // 기본값 또는 에러 처리
+  }
+};
 
 export default function Profile() {
   const { logout } = useAuth();
@@ -41,7 +59,7 @@ export default function Profile() {
 
   const equippedItems = useMemo(() => {
     if (!data) return [];
-    return data.character.itemsSlot.filter((item) => item.equipped);
+    return data.character.itemsSlot.filter((item) => item.equipped).sort((a, b) => a.type.id - b.type.id);
   }, [data]);
 
   if (isLoading) {
@@ -99,13 +117,17 @@ export default function Profile() {
           </StatsContainer>
           <SectionTitle>장착한 아이템</SectionTitle>
           <EquippedItemsSection>
-            {equippedItems.slice(0, 6).map((item) => (
-              <ItemBox
-                key={item.id}
-                imageURL={`https://picsum.photos/seed/item${item.id}/64`}
-              />
-            ))}
-            {Array.from({ length: Math.max(0, 6 - equippedItems.length) }).map((_, index) => (
+            {equippedItems.slice(0, 5).map((item) => {
+              const prefix = getItemImagePrefix(item.type.id);
+              const imageURL = getImageUrl(`${prefix}${item.id}`);
+              return (
+                <ItemBox
+                  key={item.id}
+                  imageURL={imageURL}
+                />
+              );
+            })}
+            {Array.from({ length: Math.max(0, 5 - equippedItems.length) }).map((_, index) => (
               <ItemBox
                 key={`placeholder-${index}`}
                 imageURL=""
