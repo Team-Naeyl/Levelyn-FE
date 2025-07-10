@@ -4,8 +4,8 @@ import { useState } from 'react';
 import styled from '@emotion/styled';
 import Modal from '../components/common/Modal';
 import Button from '../components/common/Button';
-import CombatModalContent from '../components/feature/CombatModalContent';
-import EventModalContent from '../components/feature/EventModalContent';
+import CombatModalContent from '../components/common/Modal/CombatModalContent';
+import EventModalContent from '../components/common/Modal/EventModalContent';
 
 const ModalContent = styled.div`
   text-align: center;
