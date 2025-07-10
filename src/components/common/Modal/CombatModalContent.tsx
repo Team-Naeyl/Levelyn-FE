@@ -1,28 +1,107 @@
 import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-
 import { keyframes, css } from '@emotion/react';
 
 import ItemBox from '../ItemBox';
 import ProgressBar from '../ProgressBar';
+import { useNotification } from '../../../contexts/NotificationContext';
+import { connectSSE, disconnectSSE } from '../../../services/sse';
+import type { BattleStreamData } from '../../../types/battle.types';
 
 import backgroundImage from '../../../assets/background.png';
 import avatarImage from '../../../assets/avatar.png';
 import mockImage from '../../../assets/mockimge.png';
 import skillImage from '../../../assets/skill.png';
 
+interface BattleState {
+  monster: {
+    name: string;
+    hp: number;
+    maxHp: number;
+    avatarUrl: string;
+  };
+}
+
 export default function CombatModalContent() {
+  const { battleId, initialBattleData, hideCombatModal } = useNotification();
+
+  const [battleState, setBattleState] = useState<BattleState | null>(() => {
+    if (!initialBattleData) return null;
+    return {
+      monster: {
+        name: initialBattleData.mob.name,
+        hp: initialBattleData.mob.hp,
+        maxHp: initialBattleData.mob.hp,
+        avatarUrl: '',
+      },
+    };
+  });
   const [showSkill, setShowSkill] = useState(false);
+  const [isHit, setIsHit] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10);
 
   useEffect(() => {
-    const randomDelay = Math.random() * 1000 + 1000; // 1~2초 사이의 랜덤 딜레이
+    if (!battleId) return;
+
     const timer = setInterval(() => {
-      setShowSkill(true);
-      setTimeout(() => setShowSkill(false), 500); // 0.5초간 스킬 표시
-    }, randomDelay);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          hideCombatModal();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [battleId, hideCombatModal]);
+
+  useEffect(() => {
+    if (!battleId) return;
+
+    const endpoint = `/api/battles/${battleId}`;
+
+    const handleBattleStream = (data: BattleStreamData) => {
+      if (data.damage > 0) {
+        setShowSkill(true);
+        setTimeout(() => setShowSkill(false), 500); // 공격 모션
+        setIsHit(true);
+        setTimeout(() => setIsHit(false), 300); // 피격 모션
+      }
+
+      setBattleState((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          monster: { ...prev.monster, hp: data.mobHp },
+        };
+      });
+
+      if (data.done) {
+        console.log('전투 종료:', data);
+        setTimeLeft(0);
+        setTimeout(() => {
+          disconnectSSE(endpoint);
+          hideCombatModal();
+        }, 2000);
+      }
+    };
+
+    connectSSE(endpoint, {
+      message: handleBattleStream,
+    });
+
+    return () => {
+      disconnectSSE(endpoint);
+    };
+  }, [battleId, hideCombatModal]);
+
+  if (!battleState) {
+    return <LoadingWrapper>전투 정보를 불러오는 중...</LoadingWrapper>;
+  }
+
+  const { monster } = battleState;
 
   return (
     <Wrapper>
@@ -34,10 +113,10 @@ export default function CombatModalContent() {
             alt="Character"
           />
         </CharacterArea>
-        <MonsterArea isHit={showSkill}>
+        <MonsterArea isHit={isHit}>
           <img
-            src={mockImage}
-            alt="Monster"
+            src={monster.avatarUrl || mockImage}
+            alt={monster.name}
           />
         </MonsterArea>
         {showSkill && (
@@ -72,18 +151,18 @@ export default function CombatModalContent() {
         </SkillSlots>
         <ProgressBars>
           <ProgressBar
-            variant="timer"
-            label="시간"
-            total={60}
-            current={45}
+            variant="exp"
+            label={monster.name}
+            total={monster.maxHp}
+            current={monster.hp}
             width="100%"
             height={20}
           />
           <ProgressBar
-            variant="exp"
-            label="HP"
-            total={100}
-            current={80}
+            variant="timer"
+            label="Timer"
+            total={10}
+            current={timeLeft}
             width="100%"
             height={20}
           />
@@ -92,6 +171,16 @@ export default function CombatModalContent() {
     </Wrapper>
   );
 }
+
+const LoadingWrapper = styled.div`
+  width: 100%;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  ${({ theme }) => theme.textStyles.H_B_24};
+`;
 
 const Wrapper = styled.div`
   display: flex;

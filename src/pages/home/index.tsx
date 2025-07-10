@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
@@ -12,7 +12,7 @@ import { getCurrentGoal } from '../../services/goal';
 import type { TodoDTO } from '../../types/todo.types';
 import type { GoalDTO } from '../../types/goal.types';
 import { useAuth } from '../../contexts/AuthContext';
-import { longPressHandler } from '../../utils/LongPressHandler';
+import { longPressHandler } from '../../utils/longPressHandler';
 
 type CategoryType = '일반' | '목표';
 
@@ -56,52 +56,70 @@ export default function Home() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(() => sessionStorage.getItem('drawerState') === 'open');
   const [todos, setTodos] = useState<TodoItemData[]>([]);
+  const [mapTodos, setMapTodos] = useState<TodoItemData[]>([]); // 타일맵을 위한 상태
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAllItems = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+    const cumulativeCompletedCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
+    const fakeCompletedTodos = Array.from({ length: cumulativeCompletedCount }, (_, i) => ({
+      id: `fake-${i}`,
+      text: '',
+      checked: true,
+      category: '일반' as CategoryType,
+    }));
+    setMapTodos(fakeCompletedTodos);
+  }, []);
 
-        if (!isLoggedIn) {
-          return;
-        }
+  const fetchAllItems = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day}`;
-
-        const [todoResults, goalResult] = await Promise.allSettled([
-          getDailyTodoList({ date: formattedDate }),
-          getCurrentGoal(),
-        ]);
-        const combinedItems: TodoItemData[] = [];
-        if (todoResults.status === 'fulfilled') {
-          const transformedTodos = todoResults.value.map(transformTodoData);
-          combinedItems.push(...transformedTodos);
-        } else {
-          setError('Todo 목록을 불러오는데 실패했습니다.');
-        }
-        if (goalResult.status === 'fulfilled' && goalResult.value) {
-          const transformedGoal = transformGoalData(goalResult.value);
-          combinedItems.push(transformedGoal);
-        } else if (goalResult.status === 'rejected') {
-        }
-        setTodos(combinedItems);
-      } catch (err) {
-        setError('데이터를 불러오는 중 알 수 없는 에러가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
+      if (!isLoggedIn) {
+        return;
       }
-    };
-    fetchAllItems();
+
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
+      const [todoResults, goalResult] = await Promise.allSettled([
+        getDailyTodoList({ date: formattedDate }),
+        getCurrentGoal(),
+      ]);
+
+      // 오늘 할 일 목록 상태 업데이트
+      const combinedItems: TodoItemData[] = [];
+      if (todoResults.status === 'fulfilled') {
+        const transformedTodos = todoResults.value.map(transformTodoData);
+        combinedItems.push(...transformedTodos);
+      } else {
+        setError('Todo 목록을 불러오는데 실패했습니다.');
+      }
+      if (goalResult.status === 'fulfilled' && goalResult.value) {
+        const transformedGoal = transformGoalData(goalResult.value);
+        combinedItems.push(transformedGoal);
+      }
+      setTodos(combinedItems);
+    } catch (err) {
+      setError('데이터를 불러오는 중 알 수 없는 에러가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchAllItems();
+  }, [fetchAllItems]);
+
+  useEffect(() => {
+    sessionStorage.setItem('drawerState', isDrawerOpen ? 'open' : 'closed');
+  }, [isDrawerOpen]);
 
   const handleToggleDrawer = (isOpen: boolean) => {
     setIsDrawerOpen(isOpen);
@@ -121,6 +139,14 @@ export default function Home() {
 
       if (checked) {
         await fulfillTodo(parseInt(id));
+        const currentCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
+        const newCount = currentCount + 1;
+        localStorage.setItem('cumulativeCompletedCount', newCount.toString());
+
+        setMapTodos((prevMapTodos) => [
+          ...prevMapTodos,
+          { id: `fake-${newCount}`, text: '', checked: true, category: '일반' as CategoryType },
+        ]);
       } else {
         console.warn('Todo 미완료 처리는 현재 지원되지 않습니다.');
       }
@@ -132,9 +158,39 @@ export default function Home() {
     }
   };
 
-  // 할 일을 길게 누를 시 edit으로 연결(longPressHandler 유틸 함수 사용)
   const handleTodoLongPress = (todo?: TodoItemData) => {
     navigate('/todo/edit', { state: { todo } });
+  };
+
+  const renderTodoList = () => {
+    if (isLoading) {
+      return <LoadingText>Todo 목록을 불러오는 중...</LoadingText>;
+    }
+
+    if (error) {
+      return (
+        <ErrorContainer>
+          <ErrorText>{error}</ErrorText>
+          <RetryButton onClick={() => window.location.reload()}>다시 시도</RetryButton>
+        </ErrorContainer>
+      );
+    }
+
+    if (todos.length === 0) {
+      return <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>;
+    }
+
+    return todos.map((todo) => (
+      <div
+        key={todo.id}
+        {...longPressHandler(handleTodoLongPress, todo, 800)}
+      >
+        <TodoItem
+          {...todo}
+          onCheck={(checked) => handleCheckTodo(todo.id, checked)}
+        />
+      </div>
+    ));
   };
 
   return (
@@ -155,7 +211,7 @@ export default function Home() {
         />
       </UserInfo>
       <Content>
-        <TileMap todos={todos} />
+        <TileMap todos={mapTodos} />
       </Content>
       <Drawer
         isOpen={isDrawerOpen}
@@ -163,29 +219,7 @@ export default function Home() {
         onAdd={handleAddTodo}
         itemCount={todos.length}
       >
-        <TodoList>
-          {isLoading && <LoadingText>Todo 목록을 불러오는 중...</LoadingText>}
-          {error && (
-            <ErrorContainer>
-              <ErrorText>{error}</ErrorText>
-              <RetryButton onClick={() => window.location.reload()}>다시 시도</RetryButton>
-            </ErrorContainer>
-          )}
-          {!isLoading &&
-            !error &&
-            todos.map((todo) => (
-              <div
-                key={todo.id}
-                {...longPressHandler(handleTodoLongPress, todo, 800)}
-              >
-                <TodoItem
-                  {...todo}
-                  onCheck={(checked) => handleCheckTodo(todo.id, checked)}
-                />
-              </div>
-            ))}
-          {!isLoading && !error && todos.length === 0 && <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>}
-        </TodoList>
+        <TodoList>{renderTodoList()}</TodoList>
       </Drawer>
     </Container>
   );
