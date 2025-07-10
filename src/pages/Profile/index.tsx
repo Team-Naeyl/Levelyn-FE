@@ -5,11 +5,13 @@ import ProgressBar from '../../components/common/ProgressBar';
 import Button from '../../components/common/Button';
 import Header from '../../components/common/Header';
 import { useAuth } from '../../contexts/AuthContext';
-import ItemBox from '../../components/common/ItemBox';
+import CustomBarChart from '../../components/common/BarChart';
 import { getMyPageData } from '../../services/myPage';
 import { getImageUrl } from '../../services/appwrite';
 import type { MyPageData } from '../../types/myPage.types';
 import avatarImage from '../../assets/avatar.png';
+import { getCompletionStats } from '../../utils/localStorage';
+import EquippedAvatar from '../Inventory/.components/EquippedAvatar';
 
 const getItemImagePrefix = (typeId: number) => {
   switch (typeId) {
@@ -27,6 +29,14 @@ const getItemImagePrefix = (typeId: number) => {
       return 'item-'; // 기본값 또는 에러 처리
   }
 };
+
+const ITEM_TYPES = [
+  { id: 1, label: '무기' },
+  { id: 2, label: '팔찌' },
+  { id: 3, label: '목걸이' },
+  { id: 4, label: '반지' },
+  { id: 5, label: '귀걸이' },
+];
 
 export default function Profile() {
   const { logout } = useAuth();
@@ -57,10 +67,45 @@ export default function Profile() {
     ];
   }, [data]);
 
-  const equippedItems = useMemo(() => {
+  const equippedItemsData = useMemo(() => {
     if (!data) return [];
-    return data.character.itemsSlot.filter((item) => item.equipped).sort((a, b) => a.type.id - b.type.id);
+    return ITEM_TYPES.map((type) => {
+      const item = data.character.itemsSlot.find((i) => i.equipped && i.type.id === type.id);
+      return {
+        label: type.label,
+        item: item
+          ? {
+              id: item.id,
+              imageURL: getImageUrl(`${getItemImagePrefix(item.type.id)}${item.id}`),
+            }
+          : null,
+      };
+    });
   }, [data]);
+
+  const appliedEffects = useMemo(() => {
+    if (!data) return [];
+    return data.character.itemsSlot
+      .filter((item) => item.equipped && item.description.includes('\n'))
+      .flatMap((item) => item.description.split('\n').slice(1))
+      .flatMap((effect) => effect.split(',').map((e) => e.trim()));
+  }, [data]);
+
+  const chartData = useMemo(() => {
+    const stats = getCompletionStats();
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const shortDate = dateString.substring(5).replace('-', '/');
+      data.push({
+        name: shortDate,
+        value: stats[dateString] || 0,
+      });
+    }
+    return data;
+  }, []);
 
   if (isLoading) {
     return (
@@ -93,20 +138,30 @@ export default function Profile() {
         title="프로필"
       />
       <CharacterSection>
-        <ImagePlaceholder src={avatarImage} />
-        <InfoContainer>
-          <NameLevelRow>
+        <ProfileInfoSection>
+          <NameLevelGroup>
             <span>{data.profile.name}</span>
             <span>Lv. {data.character.state.level}</span>
-          </NameLevelRow>
+          </NameLevelGroup>
           <ProgressBar
             variant="exp"
             label="EXP"
             total={100}
             current={data.character.state.exp}
-            width="100%"
+            width="150px"
             height={12}
           />
+        </ProfileInfoSection>
+        <EquippedAvatar
+          avatarImg={avatarImage}
+          slots={equippedItemsData.map((slot) => ({
+            label: slot.label,
+            item: slot.item,
+            onClick: () => {},
+          }))}
+        />
+        <InfoContainer>
+          <SectionTitle>능력치</SectionTitle>
           <StatsContainer>
             {stats.map((stat, index) => (
               <StatRow key={index}>
@@ -115,28 +170,18 @@ export default function Profile() {
               </StatRow>
             ))}
           </StatsContainer>
-          <SectionTitle>장착한 아이템</SectionTitle>
-          <EquippedItemsSection>
-            {equippedItems.slice(0, 5).map((item) => {
-              const prefix = getItemImagePrefix(item.type.id);
-              const imageURL = getImageUrl(`${prefix}${item.id}`);
-              return (
-                <ItemBox
-                  key={item.id}
-                  imageURL={imageURL}
-                />
-              );
-            })}
-            {Array.from({ length: Math.max(0, 5 - equippedItems.length) }).map((_, index) => (
-              <ItemBox
-                key={`placeholder-${index}`}
-                imageURL=""
-              />
+          <SectionTitle>적용된 효과</SectionTitle>
+          <AppliedEffectsContainer>
+            {appliedEffects.map((effect, index) => (
+              <EffectItem key={index}>{effect}</EffectItem>
             ))}
-          </EquippedItemsSection>
+          </AppliedEffectsContainer>
         </InfoContainer>
       </CharacterSection>
-      <StatsSection>통계</StatsSection>
+      <StatsSection>
+        <SectionTitle>주간 통계</SectionTitle>
+        <CustomBarChart data={chartData} />
+      </StatsSection>
       <LogoutButtonSection>
         <Button
           label="로그아웃"
@@ -163,6 +208,7 @@ const Container = styled.div`
 const CharacterSection = styled.div`
   ${({ theme }) => css`
     display: flex;
+    flex-direction: column;
     gap: 16px;
     width: 100%;
     padding: 16px;
@@ -172,13 +218,10 @@ const CharacterSection = styled.div`
   `}
 `;
 
-const ImagePlaceholder = styled.img`
-  width: 152px;
-  height: 100%;
-  background-color: transparent;
-  border-radius: 4px;
-  flex-shrink: 0;
-  object-fit: cover;
+const ProfileInfoSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const InfoContainer = styled.div`
@@ -188,14 +231,12 @@ const InfoContainer = styled.div`
   flex: 1;
 `;
 
-const NameLevelRow = styled.div`
-  ${({ theme }) => css`
-    ${theme.textStyles.H_B_16};
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    color: ${theme.colors.black};
-  `}
+const NameLevelGroup = styled.div`
+  ${({ theme }) => theme.textStyles.H_B_18};
+  color: ${({ theme }) => theme.colors.black};
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const StatsContainer = styled.div`
@@ -220,13 +261,18 @@ const StatValue = styled.span`
 const StatsSection = styled.div`
   ${({ theme }) => css`
     width: 100%;
-    height: 100px;
-    border: 1px solid ${theme.colors.black};
+    padding: 16px;
+
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
     color: ${theme.colors.black};
     margin-bottom: 20px;
+    box-sizing: border-box;
+
+    & > h3 {
+      margin: 0;
+    }
   `}
 `;
 
@@ -243,10 +289,15 @@ const SectionTitle = styled.h3`
   margin-top: 16px;
 `;
 
-const EquippedItemsSection = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+const AppliedEffectsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
   gap: 4px;
+`;
+
+const EffectItem = styled.div`
+  ${({ theme }) => theme.textStyles.B_R_14};
+  color: ${({ theme }) => theme.colors.black};
 `;
 
 const LoadingContainer = styled.div`
