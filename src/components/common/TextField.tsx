@@ -61,7 +61,7 @@ const InputWrapper = styled.div<Pick<TextFieldProps, 'error' | 'variant'>>`
       !variant &&
       css`
         &:focus-within {
-          border-color: ${theme.colors.primary[500]};
+          border: 2px solid ${theme.colors.primary[700]};
         }
       `}
     `;
