@@ -15,7 +15,7 @@ export const getDailyTodoList = async (query: GetDailyTodoListQuery): Promise<To
 };
 
 export const fulfillTodo = async (id: number): Promise<void> => {
-  await api.patch(`/api/to-do/${id}`);
+  await api.put(`/api/to-do/${id}`);
 };
 
 export const createTodo = async (payload: PostTodoQuery): Promise<void> => {
