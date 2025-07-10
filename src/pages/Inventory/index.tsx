@@ -77,8 +77,6 @@ export default function InventoryPage() {
     await handleEquip(item.id, tab);
   };
 
-  const { isDragging, draggedItem, dragPosition } = useDragAndDrop<InventoryItem>(handleDrop);
-
   const equippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
   const unequippedDnD = useDragAndDrop<InventoryItem>(handleDrop);
 
@@ -198,8 +196,8 @@ export default function InventoryPage() {
               {isAnyDragging && currentDraggedItem && currentDragPosition && (
                 <DragPreview
                   style={{
-                    left: currentDragPosition.x,
-                    top: currentDragPosition.y,
+                    left: currentDragPosition.x - 50,
+                    top: currentDragPosition.y - 50,
                   }}
                 >
                   <img
@@ -236,7 +234,7 @@ export default function InventoryPage() {
                   <InventoryGrid
                     data={equippedData.skill}
                     isEquipped={true}
-                    isDragging={isDragging}
+                    isDragging={equippedDnD.isDragging}
                     onItemClick={openModal}
                     onTouchStart={equippedDnD.onTouchStart}
                     onTouchMove={equippedDnD.onTouchMove}
@@ -250,7 +248,7 @@ export default function InventoryPage() {
                   <InventoryGrid
                     data={unequippedData.skill}
                     isEquipped={false}
-                    isDragging={isDragging}
+                    isDragging={unequippedDnD.isDragging}
                     onItemClick={openModal}
                     onTouchStart={unequippedDnD.onTouchStart}
                     onTouchMove={unequippedDnD.onTouchMove}
