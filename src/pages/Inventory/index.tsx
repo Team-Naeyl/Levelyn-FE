@@ -104,6 +104,10 @@ export default function InventoryPage() {
     openModal(item);
   };
 
+  const isAnyDragging = equippedDnD.isDragging || unequippedDnD.isDragging;
+  const currentDraggedItem = equippedDnD.isDragging ? equippedDnD.draggedItem : unequippedDnD.draggedItem;
+  const currentDragPosition = equippedDnD.isDragging ? equippedDnD.dragPosition : unequippedDnD.dragPosition;
+
   return (
     <Wrapper>
       <Menu>
@@ -191,13 +195,20 @@ export default function InventoryPage() {
                   />
                 </div>
               </EquipArea>
-              {isDragging && draggedItem && dragPosition && (
+              {isAnyDragging && currentDraggedItem && currentDragPosition && (
                 <DragPreview
                   style={{
-                    left: dragPosition.x,
-                    top: dragPosition.y,
+                    left: currentDragPosition.x + 20,
+                    top: currentDragPosition.y + 20,
                   }}
-                />
+                >
+                  <img
+                    src={currentDraggedItem.imageURL}
+                    alt=""
+                    width={80}
+                    height={80}
+                  />
+                </DragPreview>
               )}
               {isActionLoading && (
                 <Overlay>
@@ -248,6 +259,21 @@ export default function InventoryPage() {
                   />
                 </div>
               </EquipArea>
+              {isAnyDragging && currentDraggedItem && currentDragPosition && (
+                <DragPreview
+                  style={{
+                    left: currentDragPosition.x,
+                    top: currentDragPosition.y,
+                  }}
+                >
+                  <img
+                    src={currentDraggedItem.imageURL}
+                    alt=""
+                    width={80}
+                    height={80}
+                  />
+                </DragPreview>
+              )}
               {isActionLoading && (
                 <Overlay>
                   <Spinner />
@@ -395,8 +421,8 @@ const DragPreview = styled.div`
   pointer-events: none;
   position: fixed;
   z-index: 1555;
-  width: 100px;
-  height: 100px;
-  background: ${({ theme }) => theme.colors.gray[500]}
+  opacity: 0.6;
+  background: ${({ theme }) => theme.colors.gray[200]};
+  border: 1px solid ${({ theme }) => theme.colors.gray[500]};
   transition: opacity 0.2s;
 `;
