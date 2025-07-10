@@ -1,5 +1,5 @@
 import { type PropsWithChildren, useEffect } from 'react';
-import { createBrowserRouter, RouterProvider, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom';
 import Inventory from './pages/Inventory';
 import BottomNavigationLayout from './components/layout/BottomNavigation/BottomNavigationLayout';
 import Home from './pages/home';
@@ -10,6 +10,7 @@ import CreateTodo from './pages/CreateTodo';
 import KakaoCallback from './pages/KakaoCallback';
 import EditTodo from './pages/EditTodo';
 import ErrorPage from './pages/ErrorPage';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 const PrivateRoute = ({ children }: PropsWithChildren) => {
   const { isLoggedIn, isLoading } = useAuth();
@@ -32,32 +33,39 @@ const loggedInRouter = createBrowserRouter([
   {
     element: (
       <PrivateRoute>
-        <BottomNavigationLayout />
+        <NotificationProvider>
+          <Outlet />
+        </NotificationProvider>
       </PrivateRoute>
     ),
     errorElement: <ErrorPage />,
     children: [
       {
-        path: '/',
-        element: <Home />,
+        element: <BottomNavigationLayout />,
+        children: [
+          {
+            path: '/',
+            element: <Home />,
+          },
+          {
+            path: 'inventory',
+            element: <Inventory />,
+          },
+          {
+            path: 'profile',
+            element: <Profile />,
+          },
+        ],
       },
       {
-        path: 'inventory',
-        element: <Inventory />,
+        path: '/todo/create',
+        element: <CreateTodo />,
       },
       {
-        path: 'profile',
-        element: <Profile />,
+        path: '/todo/edit',
+        element: <EditTodo />,
       },
     ],
-  },
-  {
-    path: '/todo/create',
-    element: <CreateTodo />,
-  },
-  {
-    path: '/todo/edit',
-    element: <EditTodo />,
   },
 ]);
 
