@@ -334,7 +334,7 @@ const SectionTitle = styled(BaseLabel)`
 
 const EquipArea = styled.div`
   width: 320px;
-  max-height: 306px;
+  max-height: 450px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

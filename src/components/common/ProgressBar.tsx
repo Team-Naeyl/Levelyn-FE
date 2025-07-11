@@ -3,7 +3,7 @@ import { css } from '@emotion/react';
 
 interface ProgressBarProps {
   variant: 'exp' | 'timer';
-  label: string;
+  label?: string;
   total: number;
   current: number;
   width: number | string;
@@ -41,10 +41,14 @@ const Label = styled.label`
   ${({ theme }) => css`
     ${theme.textStyles.L_SB_12};
     color: ${theme.colors.black};
-    width: 36px;
-    text-align: left;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
+    text-align: left;
+    width: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: ${theme.colors.white};
   `}
 `;
 
@@ -63,7 +67,7 @@ const Progress = styled.div<Pick<ProgressBarProps, 'variant'>>`
   ${({ theme, variant }) => css`
     height: 100%;
     background-color: ${variant === 'exp' ? theme.colors.error[500] : theme.colors.gray[500]};
-    transition: width 0.3s ease-in-out;
+    transition: ${variant === 'timer' ? 'width 1s linear' : 'width 0.3s ease-in-out'};
   `}
 `;
 

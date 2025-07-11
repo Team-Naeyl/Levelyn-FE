@@ -83,7 +83,7 @@ const Trigger = styled.button<{ isPlaceholder?: boolean }>`
 
     &:focus {
       outline: none;
-      border: 2px solid ${theme.colors.primary[500]};
+      border: 2px solid ${theme.colors.primary[700]};
     }
   `}
 `;
@@ -94,7 +94,7 @@ const ArrowIcon = styled(Icon, {
   ${({ theme, isOpen }) => css`
     margin-left: 8px;
     font-size: 20px;
-    color: ${isOpen ? theme.colors.primary[500] : theme.colors.black};
+    color: ${isOpen ? theme.colors.primary[700] : theme.colors.black};
     transition: color 0.2s ease-in-out;
   `}
 `;

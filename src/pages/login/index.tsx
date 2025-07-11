@@ -1,19 +1,10 @@
-import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import Button from '../../components/common/Button';
 import { css } from '@emotion/react';
-import { getImageUrl } from '../../services/appwrite';
+import logoImage from '../../assets/logo.png';
+import splashImage from '../../assets/splash.png';
 
 export default function Login() {
-  // 스플래시 이미지 URL
-  const [splashImageUrl, setSplashImageUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const url = getImageUrl('splash');
-    console.log('Splash Image URL from Appwrite:', url);
-    setSplashImageUrl(url);
-  }, []);
-
   const handleLogin = () => {
     const KAKAO_REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
@@ -29,8 +20,11 @@ export default function Login() {
   };
 
   return (
-    <Container imageUrl={splashImageUrl}>
-      <Title>Levelyn</Title>
+    <Container imageUrl={splashImage}>
+      <Logo
+        src={logoImage}
+        alt="Levelyn Logo"
+      />
       <ButtonContainer>
         <Button
           label="카카오로 시작하기"
@@ -43,7 +37,7 @@ export default function Login() {
   );
 }
 
-const Container = styled.div<{ imageUrl: string | null }>`
+const Container = styled.div<{ imageUrl: string }>`
   ${({ theme, imageUrl }) => css`
     display: flex;
     flex-direction: column;
@@ -65,21 +59,19 @@ const Container = styled.div<{ imageUrl: string | null }>`
       background-size: cover;
       background-position: center bottom;
       background-repeat: no-repeat;
-      filter: grayscale(100%);
+      filter: grayscale(10%);
       transition: background-image 0.3s ease-in-out;
     }
   `}
 `;
 
-const Title = styled.h1`
-  ${({ theme }) => css`
-    ${theme.textStyles.H_B_32};
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-  `}
+const Logo = styled.img`
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: 400px;
 `;
 
 const ButtonContainer = styled.div`

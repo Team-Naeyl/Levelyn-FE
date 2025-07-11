@@ -70,6 +70,6 @@ const NavItem = styled.button<{ isSelected: boolean }>`
     cursor: pointer;
     border: none;
     background: none;
-    color: ${isSelected ? theme.colors.primary[500] : theme.colors.gray[500]};
+    color: ${isSelected ? theme.colors.primary[800] : theme.colors.gray[200]};
   `}
 `;
