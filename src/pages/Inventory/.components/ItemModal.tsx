@@ -11,6 +11,8 @@ interface InventoryItem {
   description: string;
   imageURL: string;
   equipped: boolean;
+  
+  disabled?: boolean;
 }
 
 interface ItemModalProps {
@@ -24,6 +26,7 @@ export default function ItemModal({ item, open, onClose, onToggleEquip }: ItemMo
   if (!open) return null;
 
   const isEquipped = item.equipped;
+  const isDisabled = !!item.disabled;
 
   return createPortal(
     <Overlay onClick={onClose}>
@@ -41,13 +44,16 @@ export default function ItemModal({ item, open, onClose, onToggleEquip }: ItemMo
         <Title>{item.name}</Title>
         <Description>{item.description}</Description>
 
-        <Button
-          onClick={onToggleEquip}
-          label={isEquipped ? '장착 해제' : '장착'}
-          icon={<Icon icon={isEquipped ? closeIcon : addIcon} />}
-          color={isEquipped ? 'error' : 'primary'}
-          fullWidth
-        />
+        {!isDisabled && (
+          <Button
+            onClick={onToggleEquip}
+            label={isEquipped ? '장착 해제' : '장착'}
+            icon={<Icon icon={isEquipped ? closeIcon : addIcon} />}
+            color={isEquipped ? 'error' : 'primary'}
+            fullWidth
+          />
+        )}
+        {isDisabled && <LockedNotice>보유하지 않은 스킬입니다.</LockedNotice>}
       </Dialog>
     </Overlay>,
     document.body
@@ -104,4 +110,14 @@ export const Description = styled.p`
   text-align: center;
   white-space: pre-line;
   color: ${({ theme }) => theme.colors.gray[600]};
+`;
+
+const LockedNotice = styled.div`
+  text-align: center;
+  color: ${({ theme }) => theme.colors.gray[400]};
+  background: ${({ theme }) => theme.colors.gray[100]};
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-top: 12px;
 `;

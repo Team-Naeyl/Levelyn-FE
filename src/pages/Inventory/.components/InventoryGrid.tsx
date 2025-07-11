@@ -64,6 +64,7 @@ const StyledItemBox = styled(ItemBox)<{ isDragging: boolean; isEquipped?: boolea
   opacity: ${({ isDragging, disabled }) => (disabled ? 0.3 : isDragging ? 0.6 : 1)};
   touch-action: none;
   cursor: ${({ isDragging, disabled }) => (disabled ? 'not-allowed' : isDragging ? 'grabbing' : 'pointer')};
+  filter: ${({ disabled }) => (disabled ? 'grayscale(1) blur(1.5px)' : 'none')};
   width: 100%;
   box-sizing: border-box;
   border: 1px solid ${({ theme }) => theme.colors.gray[400]};
