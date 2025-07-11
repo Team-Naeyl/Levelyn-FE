@@ -14,6 +14,13 @@ import type { TodoDTO } from '../../types/todo.types';
 import type { GoalDTO } from '../../types/goal.types';
 import { useAuth } from '../../contexts/AuthContext';
 import { longPressHandler } from '../../utils/longPressHandler';
+import {
+  getTotalCount,
+  incrementTotalCount,
+  decrementTotalCount,
+  incrementDailyStat,
+  decrementDailyStat,
+} from '../../utils/localStorage';
 
 type CategoryType = '일반' | '목표';
 
@@ -58,20 +65,13 @@ export default function Home() {
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(() => sessionStorage.getItem('drawerState') === 'open');
   const [todos, setTodos] = useState<TodoItemData[]>([]);
-  const [mapTodos, setMapTodos] = useState<TodoItemData[]>([]); // 타일맵을 위한 상태
+  const [totalCompletedCount, setTotalCompletedCount] = useState(0);
   const [userStatus, setUserStatus] = useState<UserStatus>({ nickname: '...', level: 1, exp: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const cumulativeCompletedCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
-    const fakeCompletedTodos = Array.from({ length: cumulativeCompletedCount }, (_, i) => ({
-      id: `fake-${i}`,
-      text: '',
-      checked: true,
-      category: '일반' as CategoryType,
-    }));
-    setMapTodos(fakeCompletedTodos);
+    setTotalCompletedCount(getTotalCount());
   }, []);
 
   const fetchAllItems = useCallback(async () => {
@@ -148,26 +148,24 @@ export default function Home() {
       return;
     }
 
+    const originalTodos = [...todos];
+    setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
+
     try {
-      setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
-
       if (checked) {
-        await fulfillTodo(parseInt(id));
-        const currentCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
-        const newCount = currentCount + 1;
-        localStorage.setItem('cumulativeCompletedCount', newCount.toString());
-
-        setMapTodos((prevMapTodos) => [
-          ...prevMapTodos,
-          { id: `fake-${newCount}`, text: '', checked: true, category: '일반' as CategoryType },
-        ]);
+        await fulfillTodo(Number(id));
+        const newCount = incrementTotalCount();
+        setTotalCompletedCount(newCount);
+        incrementDailyStat();
       } else {
-        console.warn('Todo 미완료 처리는 현재 지원되지 않습니다.');
+        // NOTE: 현재 API에서 미완료 처리를 지원하지 않지만, UI 일관성을 위해 카운트를 줄입니다.
+        const newCount = decrementTotalCount();
+        setTotalCompletedCount(newCount);
+        decrementDailyStat();
       }
     } catch (err) {
       console.error('Todo 상태 변경에 실패했습니다:', err);
-
-      setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked: !checked } : todo)));
+      setTodos(originalTodos);
       setError('Todo 상태 변경에 실패했습니다.');
     }
   };
@@ -225,7 +223,7 @@ export default function Home() {
         />
       </UserInfo>
       <Content>
-        <TileMap todos={mapTodos} />
+        <TileMap totalCompletedCount={totalCompletedCount} />
       </Content>
       <Drawer
         isOpen={isDrawerOpen}

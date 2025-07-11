@@ -10,7 +10,7 @@ import { getMyPageData } from '../../services/myPage';
 import { getImageUrl } from '../../services/appwrite';
 import type { MyPageData } from '../../types/myPage.types';
 import avatarImage from '../../assets/avatar.png';
-import { getCompletionStats } from '../../utils/localStorage';
+import { getDailyStats } from '../../utils/localStorage';
 import EquippedAvatar from '../Inventory/.components/EquippedAvatar';
 
 const getItemImagePrefix = (typeId: number) => {
@@ -43,6 +43,23 @@ export default function Profile() {
   const [data, setData] = useState<MyPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<{ name: string; value: number }[]>([]);
+
+  const updateChartData = () => {
+    const dailyStats = getDailyStats();
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const shortDate = dateString.substring(5).replace('-', '/');
+      data.push({
+        name: shortDate,
+        value: dailyStats[dateString] || 0,
+      });
+    }
+    setChartData(data);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,9 +74,15 @@ export default function Profile() {
       }
     };
     fetchData();
+    updateChartData();
+
+    window.addEventListener('focus', updateChartData);
+    return () => {
+      window.removeEventListener('focus', updateChartData);
+    };
   }, []);
 
-  const stats = useMemo(() => {
+  const characterStats = useMemo(() => {
     if (!data) return [];
     return [
       { name: 'atk', value: data.character.state.attack },
@@ -67,7 +90,7 @@ export default function Profile() {
     ];
   }, [data]);
 
-  const equippedItemsData = useMemo(() => {
+  const equippedItems = useMemo(() => {
     if (!data) return [];
     return ITEM_TYPES.map((type) => {
       const item = data.character.itemsSlot.find((i) => i.equipped && i.type.id === type.id);
@@ -90,22 +113,6 @@ export default function Profile() {
       .flatMap((item) => item.description.split('\n').slice(1))
       .flatMap((effect) => effect.split(',').map((e) => e.trim()));
   }, [data]);
-
-  const chartData = useMemo(() => {
-    const stats = getCompletionStats();
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateString = d.toISOString().split('T')[0];
-      const shortDate = dateString.substring(5).replace('-', '/');
-      data.push({
-        name: shortDate,
-        value: stats[dateString] || 0,
-      });
-    }
-    return data;
-  }, []);
 
   if (isLoading) {
     return (
@@ -154,7 +161,7 @@ export default function Profile() {
         </ProfileInfoSection>
         <EquippedAvatar
           avatarImg={avatarImage}
-          slots={equippedItemsData.map((slot) => ({
+          slots={equippedItems.map((slot) => ({
             label: slot.label,
             item: slot.item,
             onClick: () => {},
@@ -163,7 +170,7 @@ export default function Profile() {
         <InfoContainer>
           <SectionTitle>능력치</SectionTitle>
           <StatsContainer>
-            {stats.map((stat, index) => (
+            {characterStats.map((stat, index) => (
               <StatRow key={index}>
                 <StatLabel>{stat.name}</StatLabel>
                 <StatValue>{stat.value}</StatValue>
