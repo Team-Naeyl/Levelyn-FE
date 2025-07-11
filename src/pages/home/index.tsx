@@ -210,7 +210,7 @@ export default function Home() {
       >
         <TodoItem
           {...todo}
-          onCheck={(checked) => handleCheckTodo(todo.id, checked)}
+          onCheck={handleCheckTodo}
         />
       </div>
     ));

@@ -9,7 +9,7 @@ interface TodoItemProps {
   text: string;
   checked: boolean;
   category?: CategoryType;
-  onCheck: (checked: boolean) => void;
+  onCheck: (id: string, checked: boolean) => void;
 }
 
 const categoryColors = {
@@ -24,11 +24,15 @@ const categoryColors = {
 };
 
 export default function TodoItem({ id, text, checked, category, onCheck }: TodoItemProps) {
+  const handleCheck = (newCheckedState: boolean) => {
+    onCheck(id, newCheckedState);
+  };
+
   return (
     <ItemWrapper category={category}>
       <Checkbox
         checked={checked}
-        onChange={onCheck}
+        onChange={handleCheck}
       />
       <ItemText checked={checked}>{text}</ItemText>
       {category && <CategoryLabel category={category}>{category}</CategoryLabel>}
