@@ -155,8 +155,8 @@ export default function Profile() {
             label="EXP"
             total={100}
             current={data.character.state.exp}
-            width="150px"
-            height={12}
+            width="160px"
+            height={18}
           />
         </ProfileInfoSection>
         <EquippedAvatar
@@ -167,23 +167,28 @@ export default function Profile() {
             onClick: () => {},
           }))}
         />
-        <InfoContainer>
-          <SectionTitle>능력치</SectionTitle>
-          <StatsContainer>
-            {characterStats.map((stat, index) => (
-              <StatRow key={index}>
-                <StatLabel>{stat.name}</StatLabel>
-                <StatValue>{stat.value}</StatValue>
-              </StatRow>
-            ))}
-          </StatsContainer>
-          <SectionTitle>적용된 효과</SectionTitle>
-          <AppliedEffectsContainer>
-            {appliedEffects.map((effect, index) => (
-              <EffectItem key={index}>{effect}</EffectItem>
-            ))}
-          </AppliedEffectsContainer>
-        </InfoContainer>
+        <Divider />
+        <InfoRow>
+          <InfoColumn>
+            <SectionTitle>능력치</SectionTitle>
+            <StatsContainer>
+              {characterStats.map((stat, index) => (
+                <StatRow key={index}>
+                  <StatLabel>{stat.name}</StatLabel>
+                  <StatValue>{stat.value}</StatValue>
+                </StatRow>
+              ))}
+            </StatsContainer>
+          </InfoColumn>
+          <InfoColumn>
+            <SectionTitle>적용된 효과</SectionTitle>
+            <AppliedEffectsContainer>
+              {appliedEffects.map((effect, index) => (
+                <EffectItem key={index}>{effect}</EffectItem>
+              ))}
+            </AppliedEffectsContainer>
+          </InfoColumn>
+        </InfoRow>
       </CharacterSection>
       <StatsSection>
         <SectionTitle>주간 통계</SectionTitle>
@@ -213,16 +218,13 @@ const Container = styled.div`
 `;
 
 const CharacterSection = styled.div`
-  ${({ theme }) => css`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    padding: 16px;
-    border: 1px solid ${theme.colors.black};
-    margin-bottom: 20px;
-    box-sizing: border-box;
-  `}
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
 `;
 
 const ProfileInfoSection = styled.div`
@@ -231,11 +233,21 @@ const ProfileInfoSection = styled.div`
   align-items: center;
 `;
 
-const InfoContainer = styled.div`
+const InfoRow = styled.div`
+  display: flex;
+`;
+
+const InfoColumn = styled.div`
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
+
+  & + & {
+    margin-left: 24px;
+    padding-left: 24px;
+    border-left: 1px solid ${({ theme }) => theme.colors.gray[200]};
+  }
 `;
 
 const NameLevelGroup = styled.div`
@@ -255,6 +267,7 @@ const StatsContainer = styled.div`
 const StatRow = styled.div`
   display: flex;
   width: 100%;
+  ${({ theme }) => theme.textStyles.B_R_14};
 `;
 
 const StatLabel = styled.span`
@@ -320,4 +333,13 @@ const ErrorContainer = styled.div`
   align-items: center;
   height: 100%;
   color: ${({ theme }) => theme.colors.error[500]};
+`;
+
+const Divider = styled.div`
+  height: 5px;
+  width: 100vw;
+  background-color: ${({ theme }) => theme.colors.gray[100]};
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 `;
