@@ -1,53 +1,69 @@
 import styled from '@emotion/styled';
 import Button from '../Button';
+import { type ReactNode } from 'react';
 
 interface EventModalContentProps {
   onConfirm: () => void;
+  title: string;
+  description: ReactNode;
+  imageUrl?: string;
 }
 
-export default function EventModalContent({ onConfirm }: EventModalContentProps) {
+export default function EventModalContent({ onConfirm, title, description, imageUrl }: EventModalContentProps) {
   return (
-    <Wrapper>
-      <Title>보상 획득!</Title>
-      <ImageContainer>
-        <Image
-          src="https://picsum.photos/seed/eventitem/128"
-          alt="획득한 아이템"
-        />
-      </ImageContainer>
+    <Container>
+      <Title>{title}</Title>
+      {imageUrl && (
+        <ImageContainer>
+          <Image
+            src={imageUrl}
+            alt={title}
+          />
+        </ImageContainer>
+      )}
+      <Description>{description}</Description>
       <Button
         label="확인"
         onClick={onConfirm}
-        size="small"
+        fullWidth
       />
-    </Wrapper>
+    </Container>
   );
 }
 
-const Wrapper = styled.div`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  width: 100%;
+  gap: 16px;
+  padding: 16px;
 `;
 
-const Title = styled.h3`
-  ${({ theme }) => theme.textStyles.H_B_24};
-  margin: 0;
+const Title = styled.h2`
+  ${({ theme }) => theme.textStyles.H_B_20};
 `;
 
 const ImageContainer = styled.div`
+  margin-top: 16px;
   width: 128px;
   height: 128px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ theme }) => theme.colors.gray[100]};
+  border-radius: 8px;
 `;
 
 const Image = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
+`;
+
+const Description = styled.div`
+  ${({ theme }) => theme.textStyles.B_R_14};
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.gray[600]};
+  white-space: pre-wrap;
+  text-align: center;
+  margin-bottom: 16px;
 `;

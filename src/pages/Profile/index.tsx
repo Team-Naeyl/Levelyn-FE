@@ -82,6 +82,21 @@ export default function Profile() {
     };
   }, []);
 
+  useEffect(() => {
+    if (data) {
+      const imageUrls = [
+        ...data.character.itemsSlot
+          .filter((item) => item.equipped)
+          .map((item) => getImageUrl(`${getItemImagePrefix(item.type.id)}${item.id}`)),
+        ...data.character.skillsSlot.filter((skill) => skill.equipped).map((skill) => getImageUrl(`skill-${skill.id}`)),
+      ];
+
+      imageUrls.forEach((url) => {
+        new Image().src = url;
+      });
+    }
+  }, [data]);
+
   const characterStats = useMemo(() => {
     if (!data) return [];
     return [
@@ -155,7 +170,7 @@ export default function Profile() {
             label="EXP"
             total={100}
             current={data.character.state.exp}
-            width="160px"
+            width="100%"
             height={18}
           />
         </ProfileInfoSection>
@@ -229,8 +244,9 @@ const CharacterSection = styled.div`
 
 const ProfileInfoSection = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  align-items: left;
 `;
 
 const InfoRow = styled.div`

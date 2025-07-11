@@ -65,7 +65,14 @@ export default function Home() {
   const { isLoggedIn } = useAuth();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(() => sessionStorage.getItem('drawerState') === 'open');
-  const [todos, setTodos] = useState<TodoItemData[]>([]);
+  const [todos, setTodos] = useState<TodoItemData[]>(() => {
+    const cachedTodos = sessionStorage.getItem('todosCache');
+    try {
+      return cachedTodos ? JSON.parse(cachedTodos) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [totalCompletedCount, setTotalCompletedCount] = useState(0);
   const [userStatus, setUserStatus] = useState<UserStatus>({ nickname: '...', level: 1, exp: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +116,7 @@ export default function Home() {
         combinedItems.push(transformedGoal);
       }
       setTodos(combinedItems);
+      sessionStorage.setItem('todosCache', JSON.stringify(combinedItems));
 
       // 사용자 정보 상태 업데이트
       if (myPageResult.status === 'fulfilled') {
@@ -193,7 +201,9 @@ export default function Home() {
       return <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>;
     }
 
-    return todos.map((todo) => (
+    const sortedTodos = [...todos].sort((a, b) => Number(a.checked) - Number(b.checked));
+
+    return sortedTodos.map((todo) => (
       <div
         key={todo.id}
         {...longPressHandler(handleTodoLongPress, todo, 800)}
@@ -340,23 +350,4 @@ const RetryButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.primary[600]};
   }
-`;
-
-const GoalContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  position: relative;
-  z-index: 1;
-`;
-
-const TileMapWrapper = styled.div`
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  z-index: 1;
 `;
