@@ -21,6 +21,7 @@ import {
   incrementDailyStat,
   decrementDailyStat,
 } from '../../utils/localStorage';
+import homeBackground from '../../assets/home.png';
 
 type CategoryType = '일반' | '목표';
 
@@ -207,6 +208,7 @@ export default function Home() {
 
   return (
     <Container>
+      <BackgroundImage />
       <Header />
       <UserInfo>
         <NameLevelRow>
@@ -245,9 +247,24 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
+const BackgroundImage = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(${homeBackground});
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: grayscale(100%);
+  opacity: 0.2;
+  z-index: 0;
+`;
+
 const UserInfo = styled.div`
   position: absolute;
-  top: 72px;
+  top: 100px;
   right: 20px;
   z-index: 10;
   display: flex;
@@ -323,4 +340,23 @@ const RetryButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.primary[600]};
   }
+`;
+
+const GoalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+`;
+
+const TileMapWrapper = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 `;
