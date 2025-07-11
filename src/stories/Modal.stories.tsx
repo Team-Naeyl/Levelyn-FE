@@ -6,6 +6,7 @@ import Modal from '../components/common/Modal';
 import Button from '../components/common/Button';
 import CombatModalContent from '../components/common/Modal/CombatModalContent';
 import EventModalContent from '../components/common/Modal/EventModalContent';
+import type { InitialBattleData } from '../types/battle.types';
 
 const ModalContent = styled.div`
   text-align: center;
@@ -19,6 +20,38 @@ const ModalContent = styled.div`
     margin: 0;
   }
 `;
+
+const mockInitialBattleData: InitialBattleData = {
+  id: 'battle-1',
+  mob: {
+    id: 1,
+    type: {
+      id: 1,
+      value: 'normal',
+    },
+    name: '슬라임',
+    hp: 100,
+    regionId: 1,
+    typeId: 1,
+  },
+  player: {
+    level: 1,
+    exp: 0,
+    attack: 10,
+    will: 5,
+    skills: [
+      {
+        id: 1,
+        name: '강타',
+        description: '강력한 공격',
+        type: {
+          id: 1,
+          value: 'active',
+        },
+      },
+    ],
+  },
+};
 
 const meta: Meta<typeof Modal> = {
   title: 'Components/Modal',
@@ -57,7 +90,7 @@ const ModalTemplate = ({
 export const CombatModal: Story = {
   render: () => (
     <ModalTemplate noPadding>
-      <CombatModalContent />
+      <CombatModalContent initialData={mockInitialBattleData} />
     </ModalTemplate>
   ),
 };
@@ -65,7 +98,11 @@ export const CombatModal: Story = {
 export const EventModal: Story = {
   render: () => (
     <ModalTemplate>
-      <EventModalContent onConfirm={() => alert('확인됨')} />
+      <EventModalContent
+        title="이벤트 발생!"
+        description={'몬스터를 만났습니다.\n전투를 준비하세요!'}
+        onConfirm={() => alert('확인됨')}
+      />
     </ModalTemplate>
   ),
 };

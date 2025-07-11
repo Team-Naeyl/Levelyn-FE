@@ -26,11 +26,6 @@ interface Hexagon {
   step: number;
 }
 
-interface Todo {
-  checked: boolean;
-  category: CategoryKey;
-}
-
 interface TileMapProps {
   totalCompletedCount: number;
 }
