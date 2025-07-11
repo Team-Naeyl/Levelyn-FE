@@ -7,6 +7,7 @@ import EquippedAvatar from './.components/EquippedAvatar';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 import {
   useInventoryItems,
+  useInventorySkills,
   useInventoryUserSkills,
   useUpdateItemsMutation,
   useUpdateSkillsMutation,
@@ -14,6 +15,10 @@ import {
 import type { InventoryItem } from '../../types/inventory.types';
 
 type InventoryTab = 'skill' | 'item';
+
+type InventoryItemWithDisabled = InventoryItem & {
+  disabled?: boolean;
+};
 
 const ITEM_TYPES = [
   { type: 1, label: '무기' },
@@ -30,7 +35,9 @@ export default function InventoryPage() {
   const [itemTabType, setItemTabType] = useState<number>(1);
 
   const { data: items = [], isLoading: itemsLoading, error: itemsError } = useInventoryItems();
-  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useInventoryUserSkills();
+  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useInventorySkills();
+  const { data: userSkills = [] } = useInventoryUserSkills();
+  const userSkillIds = new Set(userSkills.map((s) => s.id));
 
   const updateSkillsMutation = useUpdateSkillsMutation();
   const updateItemsMutation = useUpdateItemsMutation();
@@ -85,7 +92,12 @@ export default function InventoryPage() {
     item: items.filter((i) => i.equipped),
   } as const;
   const unequippedData = {
-    skill: skills.filter((s) => !s.equipped),
+    skill: skills
+      .filter((s) => !s.equipped)
+      .map((s) => ({
+        ...s,
+        disabled: !userSkillIds.has(s.id),
+      })) as InventoryItemWithDisabled[],
     item: items.filter((i) => !i.equipped),
   } as const;
 
