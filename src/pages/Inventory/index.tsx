@@ -7,7 +7,7 @@ import EquippedAvatar from './.components/EquippedAvatar';
 import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 import {
   useInventoryItems,
-  useInventorySkills,
+  useInventoryUserSkills,
   useUpdateItemsMutation,
   useUpdateSkillsMutation,
 } from '../../hooks/useInventory';
@@ -30,7 +30,7 @@ export default function InventoryPage() {
   const [itemTabType, setItemTabType] = useState<number>(1);
 
   const { data: items = [], isLoading: itemsLoading, error: itemsError } = useInventoryItems();
-  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useInventorySkills();
+  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useInventoryUserSkills();
 
   const updateSkillsMutation = useUpdateSkillsMutation();
   const updateItemsMutation = useUpdateItemsMutation();
