@@ -32,7 +32,7 @@ interface Todo {
 }
 
 interface TileMapProps {
-  todos: Todo[];
+  totalCompletedCount: number;
 }
 
 const seededRandom = (seed: number, min = 0, max = 1): number => {
@@ -70,8 +70,8 @@ const axialToPixel = (q: number, r: number, size: number): [number, number] => {
   return [x, y];
 };
 
-export default function TileMap({ todos }: TileMapProps) {
-  const totalCompleted = useMemo(() => (todos ? todos.filter((todo) => todo.checked).length : 0), [todos]);
+export default function TileMap({ totalCompletedCount }: TileMapProps) {
+  const totalCompleted = totalCompletedCount;
 
   const currentCompletedOffset = useMemo(
     () => Math.floor(totalCompleted / MAX_HEXAGONS) * MAX_HEXAGONS,
@@ -80,21 +80,6 @@ export default function TileMap({ todos }: TileMapProps) {
   const currentMapSeed = useMemo(() => Math.floor(totalCompleted / MAX_HEXAGONS) + 1, [totalCompleted]);
 
   const completedStep = totalCompleted - currentCompletedOffset;
-
-  const taskCategories = useMemo(() => {
-    if (!todos) {
-      return {};
-    }
-    const categories: { [key: number]: CategoryKey } = {};
-    const visibleCompletedTodos = todos.filter((todo) => todo.checked).slice(currentCompletedOffset);
-
-    visibleCompletedTodos.forEach((todo, index) => {
-      const step = index + 1;
-      categories[step] = todo.category;
-    });
-
-    return categories;
-  }, [todos, currentCompletedOffset]);
 
   const hexagonCluster = useMemo((): Hexagon[] => {
     let currentSeed = currentMapSeed;
@@ -176,9 +161,8 @@ export default function TileMap({ todos }: TileMapProps) {
           {hexagonCluster.map((hex) => {
             const isCompleted = hex.step <= completedStep;
             const isNext = hex.step === completedStep + 1;
-            const categoryKey = taskCategories[hex.step];
 
-            const fill = isCompleted && categoryKey ? CATEGORIES[categoryKey].color : 'white';
+            const fill = isCompleted ? CATEGORIES['일반'].color : 'white';
             const stroke = isCompleted || isNext ? 'black' : '#e5e7eb';
 
             return (

@@ -39,7 +39,7 @@ export const connectSSE = (endpoint: string, eventHandlers: { [event: string]: (
       // notifications 스트림의 메시지 처리
       const eventType = message.event?.toUpperCase();
       if (eventType && eventHandlers[eventType]) {
-        if (eventType === 'ping') return;
+        if (eventType === 'PING') return;
         eventHandlers[eventType](message.data);
         return;
       }
@@ -49,7 +49,7 @@ export const connectSSE = (endpoint: string, eventHandlers: { [event: string]: (
         eventHandlers.message(message);
         return;
       }
-      if (eventType !== 'ping') {
+      if (eventType !== 'PING') {
         console.warn(`처리되지 않은 SSE 이벤트 수신:`, message);
       }
     } catch (err) {

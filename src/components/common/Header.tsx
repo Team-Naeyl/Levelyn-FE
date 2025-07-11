@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react';
 import backIcon from '@iconify-icons/material-symbols/chevron-left-rounded';
 import deleteIcon from '@iconify-icons/material-symbols/delete-outline-rounded';
 import { useTheme } from '@emotion/react';
+import logoImage from '../../assets/logo.png';
 
 interface HeaderProps {
   isMain?: boolean;
@@ -19,7 +20,10 @@ export default function Header({ isMain = true, title, onBack, onDelete }: Heade
     <>
       <HeaderContainer>
         {isMain ? (
-          <MainTitle>Levelyn</MainTitle>
+          <Logo
+            src={logoImage}
+            alt="Levelyn"
+          />
         ) : (
           <>
             <Side>
@@ -54,6 +58,8 @@ export default function Header({ isMain = true, title, onBack, onDelete }: Heade
 
 const HeaderContainer = styled.header`
   min-width: 320px;
+  width: 100%;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -68,9 +74,8 @@ const Side = styled.div`
   justify-content: center;
 `;
 
-const MainTitle = styled.div`
-  ${({ theme }) => theme.textStyles.H_B_28};
-  padding: 16px;
+const Logo = styled.img`
+  height: 50px;
 `;
 
 const Title = styled.div`

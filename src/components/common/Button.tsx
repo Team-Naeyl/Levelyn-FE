@@ -23,7 +23,7 @@ const getVariantStyle = (theme: any, variant: string, color: string = 'primary')
   };
   const selectedColor = colorMap[color as keyof typeof colorMap] || colorMap.primary;
   const isLightColor = color === 'ghost' || color === 'error';
-  const baseColor = isLightColor ? 200 : 500;
+  const baseColor = isLightColor ? 200 : 800;
   const hoverColor = isLightColor ? 300 : 600;
 
   switch (variant) {

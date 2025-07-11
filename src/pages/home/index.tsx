@@ -9,10 +9,19 @@ import TileMap from '../../components/common/tilemap';
 import Header from '../../components/common/Header';
 import { getDailyTodoList, fulfillTodo } from '../../services/todo';
 import { getCurrentGoal } from '../../services/goal';
+import { getMyPageData } from '../../services/myPage';
 import type { TodoDTO } from '../../types/todo.types';
 import type { GoalDTO } from '../../types/goal.types';
 import { useAuth } from '../../contexts/AuthContext';
 import { longPressHandler } from '../../utils/longPressHandler';
+import {
+  getTotalCount,
+  incrementTotalCount,
+  decrementTotalCount,
+  incrementDailyStat,
+  decrementDailyStat,
+} from '../../utils/localStorage';
+import homeBackground from '../../assets/home.png';
 
 type CategoryType = '일반' | '목표';
 
@@ -23,12 +32,11 @@ interface TodoItemData {
   category: CategoryType;
 }
 
-const mockUser = {
-  name: '레벨린',
-  level: 5,
-  exp: 75,
-  maxExp: 100,
-};
+interface UserStatus {
+  nickname: string;
+  level: number;
+  exp: number;
+}
 
 // TodoDTO를 TodoItem props로 변환하는 함수
 const transformTodoData = (apiTodo: TodoDTO): TodoItemData => {
@@ -57,20 +65,21 @@ export default function Home() {
   const { isLoggedIn } = useAuth();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(() => sessionStorage.getItem('drawerState') === 'open');
-  const [todos, setTodos] = useState<TodoItemData[]>([]);
-  const [mapTodos, setMapTodos] = useState<TodoItemData[]>([]); // 타일맵을 위한 상태
+  const [todos, setTodos] = useState<TodoItemData[]>(() => {
+    const cachedTodos = sessionStorage.getItem('todosCache');
+    try {
+      return cachedTodos ? JSON.parse(cachedTodos) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [totalCompletedCount, setTotalCompletedCount] = useState(0);
+  const [userStatus, setUserStatus] = useState<UserStatus>({ nickname: '...', level: 1, exp: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const cumulativeCompletedCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
-    const fakeCompletedTodos = Array.from({ length: cumulativeCompletedCount }, (_, i) => ({
-      id: `fake-${i}`,
-      text: '',
-      checked: true,
-      category: '일반' as CategoryType,
-    }));
-    setMapTodos(fakeCompletedTodos);
+    setTotalCompletedCount(getTotalCount());
   }, []);
 
   const fetchAllItems = useCallback(async () => {
@@ -88,9 +97,10 @@ export default function Home() {
       const day = String(today.getDate()).padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
 
-      const [todoResults, goalResult] = await Promise.allSettled([
+      const [todoResults, goalResult, myPageResult] = await Promise.allSettled([
         getDailyTodoList({ date: formattedDate }),
         getCurrentGoal(),
+        getMyPageData(),
       ]);
 
       // 오늘 할 일 목록 상태 업데이트
@@ -106,6 +116,19 @@ export default function Home() {
         combinedItems.push(transformedGoal);
       }
       setTodos(combinedItems);
+      sessionStorage.setItem('todosCache', JSON.stringify(combinedItems));
+
+      // 사용자 정보 상태 업데이트
+      if (myPageResult.status === 'fulfilled') {
+        const { profile, character } = myPageResult.value;
+        setUserStatus({
+          nickname: profile.name,
+          level: character.state.level,
+          exp: character.state.exp,
+        });
+      } else {
+        setError((prev) => (prev ? `${prev}, 사용자 정보 로딩 실패` : '사용자 정보를 불러오는데 실패했습니다.'));
+      }
     } catch (err) {
       setError('데이터를 불러오는 중 알 수 없는 에러가 발생했습니다.');
     } finally {
@@ -134,26 +157,24 @@ export default function Home() {
       return;
     }
 
+    const originalTodos = [...todos];
+    setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
+
     try {
-      setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
-
       if (checked) {
-        await fulfillTodo(parseInt(id));
-        const currentCount = parseInt(localStorage.getItem('cumulativeCompletedCount') || '0', 10);
-        const newCount = currentCount + 1;
-        localStorage.setItem('cumulativeCompletedCount', newCount.toString());
-
-        setMapTodos((prevMapTodos) => [
-          ...prevMapTodos,
-          { id: `fake-${newCount}`, text: '', checked: true, category: '일반' as CategoryType },
-        ]);
+        await fulfillTodo(Number(id));
+        const newCount = incrementTotalCount();
+        setTotalCompletedCount(newCount);
+        incrementDailyStat();
       } else {
-        console.warn('Todo 미완료 처리는 현재 지원되지 않습니다.');
+        // NOTE: 현재 API에서 미완료 처리를 지원하지 않지만, UI 일관성을 위해 카운트를 줄입니다.
+        const newCount = decrementTotalCount();
+        setTotalCompletedCount(newCount);
+        decrementDailyStat();
       }
     } catch (err) {
       console.error('Todo 상태 변경에 실패했습니다:', err);
-
-      setTodos((prevTodos) => prevTodos.map((todo) => (todo.id === id ? { ...todo, checked: !checked } : todo)));
+      setTodos(originalTodos);
       setError('Todo 상태 변경에 실패했습니다.');
     }
   };
@@ -180,7 +201,9 @@ export default function Home() {
       return <EmptyText>오늘 등록된 Todo가 없습니다.</EmptyText>;
     }
 
-    return todos.map((todo) => (
+    const sortedTodos = [...todos].sort((a, b) => Number(a.checked) - Number(b.checked));
+
+    return sortedTodos.map((todo) => (
       <div
         key={todo.id}
         {...longPressHandler(handleTodoLongPress, todo, 800)}
@@ -195,23 +218,24 @@ export default function Home() {
 
   return (
     <Container>
+      <BackgroundImage />
       <Header />
       <UserInfo>
         <NameLevelRow>
-          <span>{mockUser.name}</span>
-          <Level>Lv. {mockUser.level}</Level>
+          <span>{userStatus.nickname}</span>
+          <Level>Lv. {userStatus.level}</Level>
         </NameLevelRow>
         <ProgressBar
           variant="exp"
           label="EXP"
-          total={mockUser.maxExp}
-          current={mockUser.exp}
+          total={100}
+          current={userStatus.exp}
           width={160}
           height={16}
         />
       </UserInfo>
       <Content>
-        <TileMap todos={mapTodos} />
+        <TileMap totalCompletedCount={totalCompletedCount} />
       </Content>
       <Drawer
         isOpen={isDrawerOpen}
@@ -233,9 +257,24 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
+const BackgroundImage = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(${homeBackground});
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: grayscale(100%);
+  opacity: 0.2;
+  z-index: 0;
+`;
+
 const UserInfo = styled.div`
   position: absolute;
-  top: 72px;
+  top: 100px;
   right: 20px;
   z-index: 10;
   display: flex;
@@ -248,10 +287,12 @@ const NameLevelRow = styled.div`
   display: flex;
   justify-content: space-between;
   width: 100%;
+  font-weight: 600;
 `;
 
 const Level = styled.span`
   ${({ theme }) => theme.textStyles.B_R_14};
+  font-weight: 600;
 `;
 
 const Content = styled.main`
