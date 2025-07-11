@@ -2,8 +2,12 @@ import styled from '@emotion/styled';
 import type { InventoryItem } from '../../../types/inventory.types';
 import ItemBox from '../../../components/common/ItemBox';
 
+type InventoryItemWithDisabled = InventoryItem & {
+  disabled?: boolean;
+};
+
 type InventoryGridProps = {
-  data: InventoryItem[];
+  data: InventoryItemWithDisabled[];
   isEquipped?: boolean;
   onItemClick: (item: InventoryItem) => void;
   onTouchStart: (item: InventoryItem) => (e: React.TouchEvent) => void;
@@ -32,6 +36,7 @@ export default function InventoryGrid({
         <StyledItemBox
           key={el.id}
           imageURL={el.imageURL}
+          disabled={el.disabled}
           equipped={isEquipped}
           isEquipped={isEquipped}
           isDragging={isDragging}
@@ -55,10 +60,11 @@ const Grid = styled.div`
   touch-action: none;
 `;
 
-const StyledItemBox = styled(ItemBox)<{ isDragging: boolean; isEquipped?: boolean }>`
-  opacity: ${({ isDragging }) => (isDragging ? 0.6 : 1)};
+const StyledItemBox = styled(ItemBox)<{ isDragging: boolean; isEquipped?: boolean; disabled?: boolean }>`
+  opacity: ${({ isDragging, disabled }) => (disabled ? 0.3 : isDragging ? 0.6 : 1)};
   touch-action: none;
-  cursor: ${({ isDragging }) => (isDragging ? 'grabbing' : 'pointer')};
+  cursor: ${({ isDragging, disabled }) => (disabled ? 'not-allowed' : isDragging ? 'grabbing' : 'pointer')};
+  filter: ${({ disabled }) => (disabled ? 'grayscale(1) blur(1.5px)' : 'none')};
   width: 100%;
   box-sizing: border-box;
   border: 1px solid ${({ theme }) => theme.colors.gray[400]};
